@@ -14,7 +14,7 @@ struct Config {
 }
 
 #[no_mangle]
-static mut CONFIG: Config = Config { cols: 80, rows: 40 };
+static mut CONFIG: Config = Config { cols: 80, rows: 26 };
 
 #[no_mangle]
 static mut SCREEN: [u8; 4800] = [0; 4800];

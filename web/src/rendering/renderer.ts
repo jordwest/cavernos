@@ -1,5 +1,14 @@
 import { FontSpriteProgram } from "./fontsprite/fontsprite";
 import * as twgl from "twgl.js";
+import { VirtualScreenProgram } from "./virtualscreen/virtualscreen";
+import { Vec2 } from "../util/vec2";
+
+const VIRTUAL_SCREEN_ATT = [
+  {
+    min: WebGLRenderingContext.NEAREST,
+    mag: WebGLRenderingContext.NEAREST,
+  },
+];
 
 type Fonts = {
   narrow: string;
@@ -10,6 +19,7 @@ export class Renderer {
   state: {
     gl: WebGLRenderingContext;
     fontSpriteProgram: FontSpriteProgram;
+    virtualScreenProgram: VirtualScreenProgram;
     narrowFontTexture: WebGLTexture;
     squareFontTexture: WebGLTexture;
     virtualScreen: twgl.FramebufferInfo;
@@ -31,18 +41,17 @@ export class Renderer {
       min: gl.NEAREST,
       mag: gl.NEAREST,
     });
-    const virtualScreen = twgl.createFramebufferInfo(gl, [
-      {
-        min: gl.NEAREST,
-        mag: gl.NEAREST,
-        width: 1,
-        height: 1,
-      },
-    ]);
+    const virtualScreen = twgl.createFramebufferInfo(
+      gl,
+      VIRTUAL_SCREEN_ATT,
+      1,
+      1
+    );
 
     this.state = {
       gl,
       fontSpriteProgram: new FontSpriteProgram(gl),
+      virtualScreenProgram: new VirtualScreenProgram(gl),
       narrowFontTexture,
       squareFontTexture,
       virtualScreen,
@@ -61,7 +70,9 @@ export class Renderer {
   }
 
   useRealScreen() {
-    twgl.bindFramebufferInfo(this.state.gl, null);
+    const { gl } = this.state;
+    twgl.bindFramebufferInfo(gl, null);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     this.clear();
   }
 
@@ -73,13 +84,38 @@ export class Renderer {
       window.devicePixelRatio || 1
     );
 
-    this.useRealScreen();
+    if (
+      this.state.virtualScreen.width != virtualScreenSize.x ||
+      this.state.virtualScreen.height != virtualScreenSize.y
+    ) {
+      twgl.resizeFramebufferInfo(
+        gl,
+        this.state.virtualScreen,
+        VIRTUAL_SCREEN_ATT,
+        virtualScreenSize.x,
+        virtualScreenSize.y
+      );
+    }
+
     // Render the virtual screen first
+    this.useVirtualScreen();
     gl.viewport(0, 0, virtualScreenSize.x, virtualScreenSize.y);
-    //gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     this.state.fontSpriteProgram.render(
       this.state.narrowFontTexture,
       this.state.squareFontTexture
+    );
+
+    this.useRealScreen();
+    // How many virtual screens can we fit into the real display area?
+    // (Rounded down so we only ever have integer multiples - other multiples
+    // look crap with nearest neighbour (pixel) scaling)
+    const fitX = Math.floor(gl.canvas.width / this.state.virtualScreen.width);
+    const fitY = Math.floor(gl.canvas.height / this.state.virtualScreen.height);
+    const scale = Math.max(1.0, Math.min(fitX, fitY));
+
+    this.state.virtualScreenProgram.render(
+      this.state.virtualScreen.attachments[0],
+      Vec2.scalarMult(virtualScreenSize, scale)
     );
   }
 }
