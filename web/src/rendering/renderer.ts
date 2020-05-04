@@ -12,6 +12,7 @@ export class Renderer {
     fontSpriteProgram: FontSpriteProgram;
     narrowFontTexture: WebGLTexture;
     squareFontTexture: WebGLTexture;
+    virtualScreen: twgl.FramebufferInfo;
   };
 
   constructor(canvas: HTMLCanvasElement, fonts: Fonts) {
@@ -30,12 +31,21 @@ export class Renderer {
       min: gl.NEAREST,
       mag: gl.NEAREST,
     });
+    const virtualScreen = twgl.createFramebufferInfo(gl, [
+      {
+        min: gl.NEAREST,
+        mag: gl.NEAREST,
+        width: 1,
+        height: 1,
+      },
+    ]);
 
     this.state = {
       gl,
       fontSpriteProgram: new FontSpriteProgram(gl),
       narrowFontTexture,
       squareFontTexture,
+      virtualScreen,
     };
   }
 
@@ -45,8 +55,23 @@ export class Renderer {
     gl.clear(gl.COLOR_BUFFER_BIT);
   }
 
-  render() {
+  useRealScreen() {
+    twgl.bindFramebufferInfo(this.state.gl, null);
     this.clear();
+  }
+
+  render(virtualScreenSize: Vec2) {
+    const { gl } = this.state;
+
+    twgl.resizeCanvasToDisplaySize(
+      gl.canvas as HTMLCanvasElement,
+      window.devicePixelRatio || 1
+    );
+
+    this.useRealScreen();
+    // Render the virtual screen first
+    //gl.viewport(0, 0, virtualScreenSize.x, virtualScreenSize.y);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     this.state.fontSpriteProgram.render(
       this.state.narrowFontTexture,
       this.state.squareFontTexture

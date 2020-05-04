@@ -9,6 +9,12 @@ const pauseButton = document.getElementById("pause") as HTMLButtonElement;
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const debugEl = document.getElementById("debug") as HTMLPreElement;
 
+// TODO: This should come from a configurable manifest
+const GRID_SIZE = {
+  x: 8,
+  y: 16,
+};
+
 window.start = async (wasmSrc: string) => {
   const renderer = new Renderer(canvas, {
     narrow: "./text-font.png",
@@ -36,14 +42,18 @@ window.start = async (wasmSrc: string) => {
 
     const config = program.config;
     const screen = program.screen;
-    debug.x = screen.getUint8(50);
     renderer.state.fontSpriteProgram.updateScreenTexture(
       config.cols,
       config.rows,
       screen
     );
 
-    renderer.render();
+    const virtualScreenSize = {
+      x: config.cols * GRID_SIZE.x,
+      y: config.rows * GRID_SIZE.y,
+    };
+
+    renderer.render(virtualScreenSize);
 
     const end = performance.now();
     debug.time = end - start + "ms";

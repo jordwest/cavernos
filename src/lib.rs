@@ -1,6 +1,3 @@
-const COLS: u8 = 90;
-const ROWS: u8 = 40;
-
 extern "C" {
   fn prn(v: *const u8, len: usize);
 }
@@ -17,10 +14,7 @@ struct Config {
 }
 
 #[no_mangle]
-static mut CONFIG: Config = Config {
-  cols: COLS,
-  rows: ROWS,
-};
+static mut CONFIG: Config = Config { cols: 80, rows: 40 };
 
 #[no_mangle]
 static mut SCREEN: [u8; 4800] = [0; 4800];
@@ -55,27 +49,38 @@ pub extern "C" fn frame() {
   }));
 
   unsafe {
+    let t = (FRAME_NUMBER as f32) / 60.0;
+
+    CONFIG.cols = (60.0 + t.sin() * 10.0) as u8;
+    let cols = CONFIG.cols;
+    let rows = CONFIG.rows;
+
     FRAME_NUMBER += 1;
-    for y in 0..ROWS {
-      for x in 0..COLS {
-        let i: usize = (y as usize) * (COLS as usize) + (x as usize);
-        let dx = (x as f32) - (COLS as f32) / 2.0;
-        let dy = (y as f32) - (ROWS as f32) / 2.0;
+    for y in 0..rows {
+      for x in 0..cols {
+        let i: usize = (y as usize) * (cols as usize) + (x as usize);
+        let dx = (x as f32) - (cols as f32) / 2.0;
+        let dy = (y as f32) - (rows as f32) / 2.0;
 
         //let dist = (dx.powi(2) + dy.powi(2)).sqrt();
         //let t = ((FRAME_NUMBER as f32) + (dist / 10.0)) / 120.0;
-        let t = (FRAME_NUMBER as f32) / 60.0;
 
         let fac_y = t.sin() * 3.0;
 
-        SCREEN[i] = float_to_blocky_char(
-          ((x as f32 + t * 60.0) / 12.0).sin() - ((y as f32) / (6.0 + fac_y) - t * 4.0).cos(),
-        );
+        if i % 2 == 0 {
+          SCREEN[i] = 255;
+          SCREEN[i + 1] = float_to_blocky_char(
+            ((x as f32 + t * 60.0) / 12.0).sin() - ((y as f32) / (6.0 + fac_y) - t * 4.0).cos(),
+          );
+        }
       }
     }
 
-    SCREEN[2] = 255;
-    SCREEN[3] = 66;
+    let mut i = 61;
+    for c in "Hello world!".chars() {
+      i += 1;
+      SCREEN[i] = c as u8;
+    }
     //let s = std::ffi::CString::new(format!("Hello 😃")).unwrap();
     //let slice = s.as_bytes();
     //prn(slice.as_ptr(), slice.len());

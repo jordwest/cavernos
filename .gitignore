@@ -4,3 +4,4 @@ Cargo.lock
 dist
 .cache
 node_modules
+*.js.map
