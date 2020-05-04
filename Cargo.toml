@@ -1,0 +1,12 @@
+[package]
+name = "wasm-minimal"
+version = "0.1.0"
+authors = ["Jordan West <jordwest@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wee_alloc = "*"
+

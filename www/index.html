@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.hud {
+  top: 0;
+  right: 0;
+  position: absolute;
+  padding: 8px;
+  color: white;
+  background-color: black;
+  opacity: 0.4;
+}
+
+</style>
+<div class="container">
+  <div>
+    <canvas id="canvas" width=800 height=600></canvas>
+  </div>
+
+  <div class="hud">
+    <button id="pause">Pause</button>
+    <pre id="debug"></pre>
+  </div>
+</div>
+
+<script src="./main.js"></script>
+
+<script type="module">
+  window.start('./wasm_minimal.wasm');
+</script>
+
