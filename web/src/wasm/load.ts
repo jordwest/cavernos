@@ -49,8 +49,8 @@ export class WasmProgram {
       2
     );
     return {
-      rows: view.getUint8(0),
-      cols: view.getUint8(1),
+      cols: view.getUint8(0),
+      rows: view.getUint8(1),
     };
   }
 

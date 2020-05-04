@@ -1,20 +1,41 @@
 import { FontSpriteProgram } from "./fontsprite/fontsprite";
+import * as twgl from "twgl.js";
+
+type Fonts = {
+  narrow: string;
+  square: string;
+};
 
 export class Renderer {
   state: {
     gl: WebGLRenderingContext;
     fontSpriteProgram: FontSpriteProgram;
+    narrowFontTexture: WebGLTexture;
+    squareFontTexture: WebGLTexture;
   };
 
-  constructor(canvas: HTMLCanvasElement, fontTexture: string) {
+  constructor(canvas: HTMLCanvasElement, fonts: Fonts) {
     const gl = canvas.getContext("webgl");
     if (gl == null) {
       throw new Error("Could not start webgl");
     }
 
+    const narrowFontTexture = twgl.createTexture(gl, {
+      src: fonts.narrow,
+      min: gl.NEAREST,
+      mag: gl.NEAREST,
+    });
+    const squareFontTexture = twgl.createTexture(gl, {
+      src: fonts.square,
+      min: gl.NEAREST,
+      mag: gl.NEAREST,
+    });
+
     this.state = {
       gl,
-      fontSpriteProgram: new FontSpriteProgram(gl, fontTexture),
+      fontSpriteProgram: new FontSpriteProgram(gl),
+      narrowFontTexture,
+      squareFontTexture,
     };
   }
 
@@ -26,6 +47,9 @@ export class Renderer {
 
   render() {
     this.clear();
-    this.state.fontSpriteProgram.render();
+    this.state.fontSpriteProgram.render(
+      this.state.narrowFontTexture,
+      this.state.squareFontTexture
+    );
   }
 }

@@ -10,7 +10,10 @@ const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const debugEl = document.getElementById("debug") as HTMLPreElement;
 
 window.start = async (wasmSrc: string) => {
-  const renderer = new Renderer(canvas, "./text-font.png");
+  const renderer = new Renderer(canvas, {
+    narrow: "./text-font.png",
+    square: "./text-font-square.png",
+  });
   const program = await WasmProgram.load(wasmSrc);
   let paused = false;
 
@@ -31,8 +34,14 @@ window.start = async (wasmSrc: string) => {
 
     program.tick();
 
+    const config = program.config;
     const screen = program.screen;
     debug.x = screen.getUint8(50);
+    renderer.state.fontSpriteProgram.updateScreenTexture(
+      config.cols,
+      config.rows,
+      screen
+    );
 
     renderer.render();
 
