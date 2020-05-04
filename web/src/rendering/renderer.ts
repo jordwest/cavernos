@@ -55,6 +55,11 @@ export class Renderer {
     gl.clear(gl.COLOR_BUFFER_BIT);
   }
 
+  useVirtualScreen() {
+    twgl.bindFramebufferInfo(this.state.gl, this.state.virtualScreen);
+    this.clear();
+  }
+
   useRealScreen() {
     twgl.bindFramebufferInfo(this.state.gl, null);
     this.clear();
@@ -70,8 +75,8 @@ export class Renderer {
 
     this.useRealScreen();
     // Render the virtual screen first
-    //gl.viewport(0, 0, virtualScreenSize.x, virtualScreenSize.y);
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.viewport(0, 0, virtualScreenSize.x, virtualScreenSize.y);
+    //gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     this.state.fontSpriteProgram.render(
       this.state.narrowFontTexture,
       this.state.squareFontTexture
