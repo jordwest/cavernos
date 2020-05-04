@@ -5,6 +5,7 @@ interface WasmExports {
   };
   CONFIG: { value: number };
   SCREEN: { value: number };
+  INPUTS: { value: number };
 }
 
 type State = {
@@ -40,6 +41,12 @@ export class WasmProgram {
 
   tick() {
     this.state.exports.frame();
+  }
+
+  setInput(address: number, value: number) {
+    const inputsAddr = this.state.exports.INPUTS.value;
+    const view = new DataView(this.state.exports.memory.buffer, inputsAddr);
+    view.setUint8(address, value);
   }
 
   get config() {

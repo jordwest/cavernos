@@ -16,11 +16,14 @@ struct Config {
 #[no_mangle]
 static mut CONFIG: Config = Config {
   cols: 120,
-  rows: 20,
+  rows: 40,
 };
 
 #[no_mangle]
 static mut SCREEN: [u8; 4800] = [0; 4800];
+
+#[no_mangle]
+static mut INPUTS: [u8; 256] = [0; 256];
 
 static mut FRAME_NUMBER: usize = 0;
 
@@ -52,13 +55,20 @@ pub extern "C" fn frame() {
   }));
 
   unsafe {
+    if INPUTS[3] > 0 {
+      FRAME_NUMBER += 1;
+      INPUTS[3] = 0;
+    } else if INPUTS[2] > 0 {
+      FRAME_NUMBER -= 1;
+      INPUTS[2] = 0;
+    }
     let t = (FRAME_NUMBER as f32) / 60.0;
 
     CONFIG.cols = (60.0 + t.sin() * 10.0) as u8;
     let cols = CONFIG.cols;
     let rows = CONFIG.rows;
 
-    FRAME_NUMBER += 1;
+    //FRAME_NUMBER += 1;
     for y in 0..rows {
       for x in 0..cols {
         let i: usize = (y as usize) * (cols as usize) + (x as usize);
@@ -83,6 +93,13 @@ pub extern "C" fn frame() {
     for c in "Hello world!".chars() {
       i += 1;
       SCREEN[i] = c as u8;
+    }
+    for i in 0..40 {
+      if INPUTS[i] > 0 {
+        SCREEN[i] = 33;
+      } else {
+        SCREEN[i] = 95;
+      }
     }
     //let s = std::ffi::CString::new(format!("Hello 😃")).unwrap();
     //let slice = s.as_bytes();
