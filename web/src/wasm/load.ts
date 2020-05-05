@@ -10,6 +10,7 @@ interface WasmExports {
   };
   CONFIG: ExportAddress;
   SCREEN: ExportAddress;
+  BG_COLOR: ExportAddress;
   INPUTS: ExportAddress;
 }
 
@@ -82,6 +83,15 @@ export class WasmProgram {
     return new DataView(
       this.state.exports.memory.buffer,
       getExportAddress(this.state.exports.SCREEN),
+      rows * cols
+    );
+  }
+
+  get bgColors() {
+    const { rows, cols } = this.config;
+    return new DataView(
+      this.state.exports.memory.buffer,
+      getExportAddress(this.state.exports.BG_COLOR),
       rows * cols
     );
   }

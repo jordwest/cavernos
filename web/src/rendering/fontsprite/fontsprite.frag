@@ -10,6 +10,7 @@ uniform sampler2D palette;
 
 // Tables used for lookups
 uniform sampler2D charsTexture;
+uniform sampler2D backgroundColorTable;
 
 uniform vec2 fontTileCount;
 uniform vec2 screenTileCount;
@@ -18,8 +19,8 @@ void main() {
   vec4 charSample = texture2D(charsTexture, v_texCoord);
   vec2 char = (charSample.xy * 255.0);
 
-  // TODO: Instead of charSample, use backgroundColorSample from backgroundColorTable
-  vec4 backgroundColor = texture2D(palette, (char + 0.5) / 16.0);
+  vec2 bgColLoc = texture2D(backgroundColorTable, v_texCoord).xy * 255.0;
+  vec4 backgroundColor = texture2D(palette, (bgColLoc + 0.5) / 16.0);
 
   bool doubleWidth = charSample.z > 0.5;
 

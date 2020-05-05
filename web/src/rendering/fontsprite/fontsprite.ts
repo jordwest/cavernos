@@ -2,7 +2,6 @@ import * as twgl from "twgl.js";
 import vertSrc from "./fontsprite.vert";
 import fragSrc from "./fontsprite.frag";
 import { quad } from "../../util/quad";
-import { LookupTable } from "../lookup_table";
 
 type State = {
   gl: WebGLRenderingContext;
@@ -41,7 +40,7 @@ export class FontSpriteProgram {
     narrowFont: WebGLTexture;
     squareFont: WebGLTexture;
     palette: WebGLTexture;
-    charsTable: LookupTable;
+    charsTable: WebGLTexture;
     backgroundColorTable: WebGLTexture;
   }) {
     const { gl } = this.state;
@@ -58,9 +57,9 @@ export class FontSpriteProgram {
     twgl.setUniforms(this.state.programInfo, {
       narrowFont: opts.narrowFont,
       squareFont: opts.squareFont,
-      charsTexture: opts.charsTable.texture,
+      charsTexture: opts.charsTable,
       palette: opts.palette,
-      //backgroundColorTable: opts.backgroundColorTable,
+      backgroundColorTable: opts.backgroundColorTable,
       fontTileCount: [16, 16],
       screenTileCount: [opts.cols, opts.rows],
     });

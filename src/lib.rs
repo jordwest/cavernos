@@ -23,6 +23,8 @@ static mut CONFIG: Config = Config {
 
 #[no_mangle]
 static mut SCREEN: [u8; 4800] = [0; 4800];
+#[no_mangle]
+static mut BG_COLOR: [u8; 4800] = [0; 4800];
 
 #[no_mangle]
 static mut INPUTS: [u8; 256] = [0; 256];
@@ -48,6 +50,14 @@ fn float_to_blocky_char(val: f32) -> u8 {
     -120..=120 => 178,
     _ => 2,
   }
+}
+
+fn map_range(src_a: f32, src_b: f32, dst_a: f32, dst_b: f32, val: f32) -> f32 {
+  let src_range = src_b - src_a;
+  let dst_range = dst_b - dst_a;
+
+  let proportion = (val - src_a) / src_range;
+  dst_a + (proportion * dst_range)
 }
 
 #[no_mangle]
@@ -78,9 +88,9 @@ pub extern "C" fn frame() {
     for y in 0..rows {
       for x in 0..cols {
         let v = n.get([
-          x as f64 / cols as f64,
-          y as f64 / rows as f64,
-          FRAME_NUMBER as f64 / 64.0,
+          x as f64 / cols as f64 * 2.0,
+          y as f64 / rows as f64 * 2.0,
+          FRAME_NUMBER as f64 / 512.0,
         ]);
         //let v = n.get([2.1, 4.6, 8.0]);
         //log(format!("{:?}", v));
@@ -88,6 +98,9 @@ pub extern "C" fn frame() {
         let i: usize = (y as usize) * (cols as usize) + (x as usize);
         let dx = (x as f32) - (cols as f32) / 2.0;
         let dy = (y as f32) - (rows as f32) / 2.0;
+
+        // TODO
+        BG_COLOR[i] = map_range(-1.0, 1.0, 16.0, 48.0, v as f32) as u8;
 
         //let dist = (dx.powi(2) + dy.powi(2)).sqrt();
         //let t = ((FRAME_NUMBER as f32) + (dist / 10.0)) / 120.0;

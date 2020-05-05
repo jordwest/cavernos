@@ -376,6 +376,16 @@ function () {
     enumerable: true,
     configurable: true
   });
+  Object.defineProperty(WasmProgram.prototype, "bgColors", {
+    get: function get() {
+      var _a = this.config,
+          rows = _a.rows,
+          cols = _a.cols;
+      return new DataView(this.state.exports.memory.buffer, getExportAddress(this.state.exports.BG_COLOR), rows * cols);
+    },
+    enumerable: true,
+    configurable: true
+  });
   return WasmProgram;
 }();
 
@@ -10421,7 +10431,7 @@ function resizeCanvasToDisplaySize(canvas, multiplier) {
 },{}],"YGoC":[function(require,module,exports) {
 module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec2 position;\nattribute vec2 texCoord;\n\nvarying vec2 v_texCoord;\n\nvoid main() {\n  v_texCoord = texCoord;\n  gl_Position = vec4(position, 0.0, 1.0);\n}\n";
 },{}],"UwF1":[function(require,module,exports) {
-module.exports = "\nprecision mediump float;\n#define GLSLIFY 1\n\nvarying vec2 v_texCoord;\n\n// Colors used for rendering\nuniform sampler2D narrowFont;\nuniform sampler2D squareFont;\nuniform sampler2D palette;\n\n// Tables used for lookups\nuniform sampler2D charsTexture;\n\nuniform vec2 fontTileCount;\nuniform vec2 screenTileCount;\n\nvoid main() {\n  vec4 charSample = texture2D(charsTexture, v_texCoord);\n  vec2 char = (charSample.xy * 255.0);\n\n  // TODO: Instead of charSample, use backgroundColorSample from backgroundColorTable\n  vec4 backgroundColor = texture2D(palette, (char + 0.5) / 16.0);\n\n  bool doubleWidth = charSample.z > 0.5;\n\n  vec2 fontTileCountScaled = doubleWidth\n    ? vec2(fontTileCount.x * 2.0, fontTileCount.y)\n    : fontTileCount;\n  vec2 spriteSize = 1.0 / fontTileCountScaled;\n  vec2 fontTextureStartOffset = char * spriteSize;\n\n  vec2 spriteOffset = vec2(\n    mod((v_texCoord.x * screenTileCount.x), 1.0),\n    mod((v_texCoord.y * screenTileCount.y), 1.0)\n  ) * spriteSize;\n\n  vec2 fontTextureOffset = fontTextureStartOffset + spriteOffset;\n\n  vec4 fontCol = doubleWidth\n    ? texture2D(squareFont, fontTextureOffset)\n    //? vec4(spriteOffset / spriteSize, 0.0, 1.0)\n    : texture2D(narrowFont, fontTextureOffset);\n\n  //gl_FragColor = vec4(v_texCoord.x, 0.0, v_texCoord.y, 1.0);\n  gl_FragColor = vec4(mix(backgroundColor.rgb, fontCol.rgb, fontCol.a), 1.0);\n}\n";
+module.exports = "\nprecision mediump float;\n#define GLSLIFY 1\n\nvarying vec2 v_texCoord;\n\n// Colors used for rendering\nuniform sampler2D narrowFont;\nuniform sampler2D squareFont;\nuniform sampler2D palette;\n\n// Tables used for lookups\nuniform sampler2D charsTexture;\nuniform sampler2D backgroundColorTable;\n\nuniform vec2 fontTileCount;\nuniform vec2 screenTileCount;\n\nvoid main() {\n  vec4 charSample = texture2D(charsTexture, v_texCoord);\n  vec2 char = (charSample.xy * 255.0);\n\n  vec2 bgColLoc = texture2D(backgroundColorTable, v_texCoord).xy * 255.0;\n  vec4 backgroundColor = texture2D(palette, (bgColLoc + 0.5) / 16.0);\n\n  bool doubleWidth = charSample.z > 0.5;\n\n  vec2 fontTileCountScaled = doubleWidth\n    ? vec2(fontTileCount.x * 2.0, fontTileCount.y)\n    : fontTileCount;\n  vec2 spriteSize = 1.0 / fontTileCountScaled;\n  vec2 fontTextureStartOffset = char * spriteSize;\n\n  vec2 spriteOffset = vec2(\n    mod((v_texCoord.x * screenTileCount.x), 1.0),\n    mod((v_texCoord.y * screenTileCount.y), 1.0)\n  ) * spriteSize;\n\n  vec2 fontTextureOffset = fontTextureStartOffset + spriteOffset;\n\n  vec4 fontCol = doubleWidth\n    ? texture2D(squareFont, fontTextureOffset)\n    //? vec4(spriteOffset / spriteSize, 0.0, 1.0)\n    : texture2D(narrowFont, fontTextureOffset);\n\n  //gl_FragColor = vec4(v_texCoord.x, 0.0, v_texCoord.y, 1.0);\n  gl_FragColor = vec4(mix(backgroundColor.rgb, fontCol.rgb, fontCol.a), 1.0);\n}\n";
 },{}],"hqj0":[function(require,module,exports) {
 "use strict";
 
@@ -10557,9 +10567,9 @@ function () {
     twgl.setUniforms(this.state.programInfo, {
       narrowFont: opts.narrowFont,
       squareFont: opts.squareFont,
-      charsTexture: opts.charsTable.texture,
+      charsTexture: opts.charsTable,
       palette: opts.palette,
-      //backgroundColorTable: opts.backgroundColorTable,
+      backgroundColorTable: opts.backgroundColorTable,
       fontTileCount: [16, 16],
       screenTileCount: [opts.cols, opts.rows]
     });
@@ -10687,6 +10697,15 @@ var LookupTable =
 /** @class */
 function () {
   function LookupTable(gl) {
+    var _this = this;
+
+    this.setCell = function (i, x, y, doubleWidth) {
+      _this.backingData[i * 4] = x;
+      _this.backingData[i * 4 + 1] = y; // Flag to tell the shader to double number of tiles
+
+      _this.backingData[i * 4 + 2] = doubleWidth ? 255 : 0;
+    };
+
     this.gl = gl;
     this.backingData = new Uint8Array(4);
     var opts = {
@@ -10702,11 +10721,7 @@ function () {
   } // TODO
 
 
-  LookupTable.prototype.updateWithColorData = function (cols, rows, data) {};
-
-  LookupTable.prototype.updateWithCharData = function (cols, rows, data) {
-    var _this = this;
-
+  LookupTable.prototype.updateWithColorData = function (cols, rows, data) {
     var _a = this,
         gl = _a.gl,
         texture = _a.texture;
@@ -10718,12 +10733,35 @@ function () {
       this.backingData = new Uint8Array(chars * 4);
     }
 
-    var setChar = function setChar(i, x, y, doubleWidth) {
-      _this.backingData[i * 4] = x;
-      _this.backingData[i * 4 + 1] = y; // Flag to tell the shader to double number of tiles
+    while (offset < chars) {
+      var charCode = data.getUint8(offset);
+      var x = charCode % 16;
+      var y = Math.floor(charCode / 16);
+      this.setCell(offset, x, y, false);
+      offset += 1;
+    } // Finally, upload the texture to the GPU
 
-      _this.backingData[i * 4 + 2] = doubleWidth ? 255 : 0;
-    };
+
+    twgl.setTextureFromArray(gl, texture, this.backingData, {
+      min: gl.NEAREST,
+      mag: gl.NEAREST,
+      width: cols,
+      height: rows,
+      wrap: gl.CLAMP_TO_EDGE
+    });
+  };
+
+  LookupTable.prototype.updateWithCharData = function (cols, rows, data) {
+    var _a = this,
+        gl = _a.gl,
+        texture = _a.texture;
+
+    var offset = 0;
+    var chars = cols * rows;
+
+    if (this.backingData.length < chars * 4) {
+      this.backingData = new Uint8Array(chars * 4);
+    }
 
     while (offset < chars) {
       var charCode = data.getUint8(offset);
@@ -10732,15 +10770,15 @@ function () {
 
       if (charCode !== 255) {
         // Narrow char
-        setChar(offset, x, y, false);
+        this.setCell(offset, x, y, false);
       } else {
         // Double width char
         // Read the next byte to see what char to print
         var charCode_1 = data.getUint8(offset + 1);
         var x_1 = charCode_1 % 16;
         var y_1 = Math.floor(charCode_1 / 16);
-        setChar(offset, x_1 * 2, y_1, true);
-        setChar(offset + 1, x_1 * 2 + 1, y_1, true); // Consume the extra char
+        this.setCell(offset, x_1 * 2, y_1, true);
+        this.setCell(offset + 1, x_1 * 2 + 1, y_1, true); // Consume the extra char
 
         offset += 1;
       }
@@ -10825,6 +10863,7 @@ function () {
       fontSpriteProgram: new fontsprite_1.FontSpriteProgram(gl),
       virtualScreenProgram: new virtualscreen_1.VirtualScreenProgram(gl),
       charsTable: new lookup_table_1.LookupTable(gl),
+      bgColorTable: new lookup_table_1.LookupTable(gl),
       narrowFontTexture: narrowFontTexture,
       squareFontTexture: squareFontTexture,
       virtualScreen: virtualScreen,
@@ -10867,8 +10906,8 @@ function () {
       narrowFont: this.state.narrowFontTexture,
       squareFont: this.state.squareFontTexture,
       palette: this.state.palette,
-      charsTable: this.state.charsTable,
-      backgroundColorTable: undefined
+      charsTable: this.state.charsTable.texture,
+      backgroundColorTable: this.state.bgColorTable.texture
     });
     this.useRealScreen(); // How many virtual screens can we fit into the real display area?
     // (Rounded down so we only ever have integer multiples - other multiples
@@ -11138,6 +11177,8 @@ var start = function start(manifest) {
             program.tick();
             var config = program.config;
             var screen = program.screen;
+            var bgColors = program.bgColors;
+            renderer.state.bgColorTable.updateWithColorData(config.cols, config.rows, bgColors);
             renderer.state.charsTable.updateWithCharData(config.cols, config.rows, screen);
             var virtualScreenSize = {
               x: config.cols * manifest.fonts.gridSize.width,

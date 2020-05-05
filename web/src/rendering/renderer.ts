@@ -25,6 +25,7 @@ export class Renderer {
     squareFontTexture: WebGLTexture;
     palette: WebGLTexture;
     charsTable: LookupTable;
+    bgColorTable: LookupTable;
     virtualScreen: twgl.FramebufferInfo;
   };
 
@@ -61,6 +62,7 @@ export class Renderer {
       fontSpriteProgram: new FontSpriteProgram(gl),
       virtualScreenProgram: new VirtualScreenProgram(gl),
       charsTable: new LookupTable(gl),
+      bgColorTable: new LookupTable(gl),
       narrowFontTexture,
       squareFontTexture,
       virtualScreen,
@@ -116,8 +118,8 @@ export class Renderer {
       narrowFont: this.state.narrowFontTexture,
       squareFont: this.state.squareFontTexture,
       palette: this.state.palette,
-      charsTable: this.state.charsTable,
-      backgroundColorTable: undefined,
+      charsTable: this.state.charsTable.texture,
+      backgroundColorTable: this.state.bgColorTable.texture,
     });
 
     this.useRealScreen();

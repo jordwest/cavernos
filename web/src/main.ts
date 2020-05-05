@@ -76,7 +76,13 @@ const start = async (manifest: ManifestV1) => {
 
     const config = program.config;
     const screen = program.screen;
+    const bgColors = program.bgColors;
 
+    renderer.state.bgColorTable.updateWithColorData(
+      config.cols,
+      config.rows,
+      bgColors
+    );
     renderer.state.charsTable.updateWithCharData(
       config.cols,
       config.rows,
