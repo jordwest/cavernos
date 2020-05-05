@@ -21,21 +21,32 @@ export class WasmProgram {
   }
 
   static async load(wasmSrc: string) {
-    const { instance } = await WebAssembly.instantiateStreaming(
-      fetch(wasmSrc),
-      {
-        env: {
-          prn: (addr: number, len: number) => {
-            const exports = (instance.exports as unknown) as WasmExports;
-            const raw = new Uint8ClampedArray(exports.memory.buffer, addr, len);
-            const decoder = new TextDecoder("utf8");
-            console.info(decoder.decode(raw));
-          },
+    const imports = {
+      env: {
+        prn: (addr: number, len: number) => {
+          const exports = (instance.exports as unknown) as WasmExports;
+          const raw = new Uint8ClampedArray(exports.memory.buffer, addr, len);
+          const decoder = new TextDecoder("utf8");
+          console.info(decoder.decode(raw));
         },
-      }
-    );
+      },
+    };
+
+    let instance: WebAssembly.Instance;
+    if (WebAssembly.instantiateStreaming != null) {
+      const m = await WebAssembly.instantiateStreaming(fetch(wasmSrc), imports);
+      instance = m.instance;
+    } else {
+      const response = await fetch(wasmSrc);
+      const m = await WebAssembly.instantiate(
+        await response.arrayBuffer(),
+        imports
+      );
+      instance = m.instance;
+    }
 
     const exports = (instance.exports as unknown) as WasmExports;
+    console.log("exports", Object.keys(exports));
     return new WasmProgram({ instance, exports });
   }
 

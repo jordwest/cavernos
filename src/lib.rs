@@ -1,3 +1,5 @@
+use noise::{NoiseFn, Seedable};
+
 extern "C" {
   fn prn(v: *const u8, len: usize);
 }
@@ -38,12 +40,12 @@ fn log(s: String) {
 fn float_to_blocky_char(val: f32) -> u8 {
   let i = (val * 100.0) as i32;
   match i {
-    -10..=10 => 0,
-    -30..=30 => 249,
-    -70..=70 => 176,
-    -90..=90 => 177,
-    -100..=100 => 178,
-    -120..=120 => 219,
+    -10..=10 => 1,
+    -30..=30 => 2,
+    -70..=70 => 3,
+    -90..=90 => 14,
+    -100..=100 => 177,
+    -120..=120 => 178,
     _ => 2,
   }
 }
@@ -55,22 +57,34 @@ pub extern "C" fn frame() {
   }));
 
   unsafe {
-    if INPUTS[3] > 0 {
-      FRAME_NUMBER += 1;
-      INPUTS[3] = 0;
-    } else if INPUTS[2] > 0 {
+    if INPUTS[2] > 0 {
       FRAME_NUMBER -= 1;
-      INPUTS[2] = 0;
+    } else if INPUTS[3] > 0 {
+      FRAME_NUMBER += 2;
+    } else if INPUTS[5] > 0 {
+      // Do nothing
+    } else {
+      FRAME_NUMBER += 1;
     }
     let t = (FRAME_NUMBER as f32) / 60.0;
 
-    CONFIG.cols = (60.0 + t.sin() * 10.0) as u8;
     let cols = CONFIG.cols;
     let rows = CONFIG.rows;
+    let n = noise::Perlin::new();
+    let n = n.set_seed(18);
+    let v = n.get([16.3, 32.0, 8.0]);
+    //log(format!("{:?}", v));
 
-    //FRAME_NUMBER += 1;
     for y in 0..rows {
       for x in 0..cols {
+        let v = n.get([
+          x as f64 / cols as f64,
+          y as f64 / rows as f64,
+          FRAME_NUMBER as f64 / 64.0,
+        ]);
+        //let v = n.get([2.1, 4.6, 8.0]);
+        //log(format!("{:?}", v));
+
         let i: usize = (y as usize) * (cols as usize) + (x as usize);
         let dx = (x as f32) - (cols as f32) / 2.0;
         let dy = (y as f32) - (rows as f32) / 2.0;
@@ -82,12 +96,15 @@ pub extern "C" fn frame() {
 
         if i % 2 == 0 {
           SCREEN[i] = 255;
-          SCREEN[i + 1] = float_to_blocky_char(
-            ((x as f32 + t * 60.0) / 12.0).sin() - ((y as f32) / (6.0 + fac_y) - t * 4.0).cos(),
-          );
+          //SCREEN[i + 1] = float_to_blocky_char(
+          //  ((x as f32 + t * 60.0) / 12.0).sin() - ((y as f32) / (6.0 + fac_y) - t * 4.0).cos(),
+          //);
+          SCREEN[i + 1] = float_to_blocky_char(v as f32);
         }
       }
     }
+
+    //panic!("Force quit");
 
     let mut i = 61;
     for c in "Hello world!".chars() {
