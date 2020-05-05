@@ -16,6 +16,7 @@ const manifest: ManifestV1 = {
     narrow: "./text-font.png",
     square: "./text-font-square.png",
   },
+  palette: "./palette.png",
   inputMappings: [
     { address: 0, comment: "Move Up", keys: ["ArrowUp", "w"] },
     { address: 1, comment: "Move Down", keys: ["ArrowDown", "s"] },
@@ -32,10 +33,7 @@ const start = async (manifest: ManifestV1) => {
     throw new Error("Only manifest version 1 is currently supported");
   }
 
-  const renderer = new Renderer(canvas, {
-    narrow: manifest.fonts.narrow,
-    square: manifest.fonts.square,
-  });
+  const renderer = new Renderer(canvas, manifest.fonts, manifest.palette);
   const program = await WasmProgram.load(manifest.program);
   let paused = false;
 
@@ -63,6 +61,7 @@ const start = async (manifest: ManifestV1) => {
     pauseButton.innerText = paused ? "Play" : "Pause";
   });
 
+  let frameCount = 0;
   const frame = (_t: number) => {
     let debug: object = {};
 
@@ -77,7 +76,8 @@ const start = async (manifest: ManifestV1) => {
 
     const config = program.config;
     const screen = program.screen;
-    renderer.state.fontSpriteProgram.updateScreenTexture(
+
+    renderer.state.charsTable.updateWithCharData(
       config.cols,
       config.rows,
       screen
@@ -88,12 +88,18 @@ const start = async (manifest: ManifestV1) => {
       y: config.rows * manifest.fonts.gridSize.height,
     };
 
-    renderer.render(virtualScreenSize);
+    renderer.render(virtualScreenSize, config.rows, config.cols);
 
-    const end = performance.now();
-    debug.time = end - start + "ms";
-    debugEl.innerText = JSON.stringify(debug, undefined, 2);
+    renderer.state.gl.finish();
+    // This DOM update actually causes the most memory allocations,
+    // so only do it every 20 frames
+    if (frameCount % 20 === 0) {
+      const end = performance.now();
+      debug.time = Math.round(end - start) + "ms";
+      debugEl.textContent = JSON.stringify(debug, undefined, 2);
+    }
 
+    frameCount += 1;
     requestAnimationFrame(frame);
   };
   frame();

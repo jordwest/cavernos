@@ -2,6 +2,7 @@ import { FontSpriteProgram } from "./fontsprite/fontsprite";
 import * as twgl from "twgl.js";
 import { VirtualScreenProgram } from "./virtualscreen/virtualscreen";
 import { Vec2 } from "../util/vec2";
+import {LookupTable} from "./lookup_table";
 
 const VIRTUAL_SCREEN_ATT = [
   {
@@ -22,10 +23,12 @@ export class Renderer {
     virtualScreenProgram: VirtualScreenProgram;
     narrowFontTexture: WebGLTexture;
     squareFontTexture: WebGLTexture;
+    palette: WebGLTexture;
+    charsTable: LookupTable;
     virtualScreen: twgl.FramebufferInfo;
   };
 
-  constructor(canvas: HTMLCanvasElement, fonts: Fonts) {
+  constructor(canvas: HTMLCanvasElement, fonts: Fonts, paletteSrc: string) {
     const gl = canvas.getContext("webgl");
     if (gl == null) {
       throw new Error("Could not start webgl");
@@ -41,6 +44,11 @@ export class Renderer {
       min: gl.NEAREST,
       mag: gl.NEAREST,
     });
+    const palette = twgl.createTexture(gl, {
+      src: paletteSrc,
+      min: gl.NEAREST,
+      mag: gl.NEAREST,
+    });
     const virtualScreen = twgl.createFramebufferInfo(
       gl,
       VIRTUAL_SCREEN_ATT,
@@ -52,9 +60,11 @@ export class Renderer {
       gl,
       fontSpriteProgram: new FontSpriteProgram(gl),
       virtualScreenProgram: new VirtualScreenProgram(gl),
+      charsTable: new LookupTable(gl),
       narrowFontTexture,
       squareFontTexture,
       virtualScreen,
+      palette,
     };
   }
 
@@ -76,7 +86,7 @@ export class Renderer {
     this.clear();
   }
 
-  render(virtualScreenSize: Vec2) {
+  render(virtualScreenSize: Vec2, rows: number, cols: number) {
     const { gl } = this.state;
 
     twgl.resizeCanvasToDisplaySize(
@@ -100,10 +110,15 @@ export class Renderer {
     // Render the virtual screen first
     this.useVirtualScreen();
     gl.viewport(0, 0, virtualScreenSize.x, virtualScreenSize.y);
-    this.state.fontSpriteProgram.render(
-      this.state.narrowFontTexture,
-      this.state.squareFontTexture
-    );
+    this.state.fontSpriteProgram.render({
+      rows,
+      cols,
+      narrowFont: this.state.narrowFontTexture,
+      squareFont: this.state.squareFontTexture,
+      palette: this.state.palette,
+      charsTable: this.state.charsTable,
+      backgroundColorTable: undefined,
+    });
 
     this.useRealScreen();
     // How many virtual screens can we fit into the real display area?

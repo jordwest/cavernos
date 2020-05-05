@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "parcel build src/main.ts"
+    "build": "parcel build src/main.ts",
+    "devbuild": "NODE_ENV=development parcel build src/main.ts --no-minify"
   },
   "dependencies": {
     "parcel-bundler": "^1.12.4",

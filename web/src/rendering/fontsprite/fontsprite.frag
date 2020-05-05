@@ -3,15 +3,23 @@ precision mediump float;
 
 varying vec2 v_texCoord;
 
+// Colors used for rendering
 uniform sampler2D narrowFont;
 uniform sampler2D squareFont;
+uniform sampler2D palette;
+
+// Tables used for lookups
 uniform sampler2D charsTexture;
+
 uniform vec2 fontTileCount;
 uniform vec2 screenTileCount;
 
 void main() {
   vec4 charSample = texture2D(charsTexture, v_texCoord);
   vec2 char = (charSample.xy * 255.0);
+
+  // TODO: Instead of charSample, use backgroundColorSample from backgroundColorTable
+  vec4 backgroundColor = texture2D(palette, (char + 0.5) / 16.0);
 
   bool doubleWidth = charSample.z > 0.5;
 
@@ -34,5 +42,5 @@ void main() {
     : texture2D(narrowFont, fontTextureOffset);
 
   //gl_FragColor = vec4(v_texCoord.x, 0.0, v_texCoord.y, 1.0);
-  gl_FragColor = fontCol;
+  gl_FragColor = vec4(mix(backgroundColor.rgb, fontCol.rgb, fontCol.a), 1.0);
 }

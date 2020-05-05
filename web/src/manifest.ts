@@ -6,6 +6,7 @@ export type ManifestV1 = {
     narrow: string;
     square: string;
   };
+  palette: string;
   inputMappings: InputMappingV1[];
 };
 

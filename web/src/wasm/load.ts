@@ -1,11 +1,16 @@
+// For some reason iOS Safari doesn't return an object, but just the address directly
+type ExportAddress = number | { value: number };
+const getExportAddress = (v: ExportAddress) =>
+  typeof v === "number" ? v : v.value;
+
 interface WasmExports {
   frame(): void;
   memory: {
     buffer: ArrayBuffer;
   };
-  CONFIG: { value: number };
-  SCREEN: { value: number };
-  INPUTS: { value: number };
+  CONFIG: ExportAddress;
+  SCREEN: ExportAddress;
+  INPUTS: ExportAddress;
 }
 
 type State = {
@@ -55,7 +60,7 @@ export class WasmProgram {
   }
 
   setInput(address: number, value: number) {
-    const inputsAddr = this.state.exports.INPUTS.value;
+    const inputsAddr = getExportAddress(this.state.exports.INPUTS);
     const view = new DataView(this.state.exports.memory.buffer, inputsAddr);
     view.setUint8(address, value);
   }
@@ -63,7 +68,7 @@ export class WasmProgram {
   get config() {
     const view = new DataView(
       this.state.exports.memory.buffer,
-      this.state.exports.CONFIG.value,
+      getExportAddress(this.state.exports.CONFIG),
       2
     );
     return {
@@ -76,7 +81,7 @@ export class WasmProgram {
     const { rows, cols } = this.config;
     return new DataView(
       this.state.exports.memory.buffer,
-      this.state.exports.SCREEN.value,
+      getExportAddress(this.state.exports.SCREEN),
       rows * cols
     );
   }
