@@ -1,17 +1,18 @@
 // For some reason iOS Safari doesn't return an object, but just the address directly
 type ExportAddress = number | { value: number };
-const getExportAddress = (v: ExportAddress) =>
-  typeof v === "number" ? v : v.value;
+const getExportAddress = (v: ExportAddress): Pointer =>
+  (typeof v === "number" ? v : v.value) as Pointer;
+
+type Pointer = number & { __pointer: never };
+type Offset = number & { __offset: never };
 
 interface WasmExports {
-  frame(): void;
+  init(osAddr: Pointer): Pointer;
+  frame(osAddr: Pointer, appStateAddr: Pointer, dt: number): void;
   memory: {
     buffer: ArrayBuffer;
   };
-  CONFIG: ExportAddress;
-  SCREEN: ExportAddress;
-  BG_COLOR: ExportAddress;
-  INPUTS: ExportAddress;
+  OS: ExportAddress;
 }
 
 type State = {
@@ -19,11 +20,20 @@ type State = {
   exports: WasmExports;
 };
 
+const configOffset = 0 as Offset;
+const inputsOffset = (configOffset + 256) as Offset;
+const reservedOffset = (inputsOffset + 256) as Offset;
+const screenOffset = (reservedOffset + 2560) as Offset;
+const bgColorOffset = (screenOffset + 65536) as Offset;
+const fgColorOffset = (bgColorOffset + 65536) as Offset;
+
 export class WasmProgram {
   state: State;
+  appStateAddr: Pointer;
 
   constructor(state: State) {
     this.state = state;
+    this.appStateAddr = this.state.exports.init(this.osAddr);
   }
 
   static async load(wasmSrc: string) {
@@ -52,16 +62,21 @@ export class WasmProgram {
     }
 
     const exports = (instance.exports as unknown) as WasmExports;
+
     console.log("exports", Object.keys(exports));
     return new WasmProgram({ instance, exports });
   }
 
-  tick() {
-    this.state.exports.frame();
+  get osAddr(): Pointer {
+    return getExportAddress(this.state.exports.OS);
+  }
+
+  tick(dt: number) {
+    this.state.exports.frame(this.osAddr, this.appStateAddr, dt);
   }
 
   setInput(address: number, value: number) {
-    const inputsAddr = getExportAddress(this.state.exports.INPUTS);
+    const inputsAddr = getExportAddress(this.state.exports.OS) + inputsOffset;
     const view = new DataView(this.state.exports.memory.buffer, inputsAddr);
     view.setUint8(address, value);
   }
@@ -69,7 +84,7 @@ export class WasmProgram {
   get config() {
     const view = new DataView(
       this.state.exports.memory.buffer,
-      getExportAddress(this.state.exports.CONFIG),
+      getExportAddress(this.state.exports.OS) + configOffset,
       2
     );
     return {
@@ -79,20 +94,58 @@ export class WasmProgram {
   }
 
   get screen() {
-    const { rows, cols } = this.config;
-    return new DataView(
+    return new ScreenData(
+      this.state.exports.OS,
+      screenOffset,
       this.state.exports.memory.buffer,
-      getExportAddress(this.state.exports.SCREEN),
-      rows * cols
+      this.config.cols,
+      this.config.rows
     );
   }
 
   get bgColors() {
-    const { rows, cols } = this.config;
-    return new DataView(
+    return new ScreenData(
+      this.state.exports.OS,
+      bgColorOffset,
       this.state.exports.memory.buffer,
-      getExportAddress(this.state.exports.BG_COLOR),
-      rows * cols
+      this.config.cols,
+      this.config.rows
     );
+  }
+
+  get fgColors() {
+    return new ScreenData(
+      this.state.exports.OS,
+      fgColorOffset,
+      this.state.exports.memory.buffer,
+      this.config.cols,
+      this.config.rows
+    );
+  }
+}
+
+export class ScreenData {
+  private updateView: DataView;
+  cells: DataView;
+
+  constructor(
+    osAddr: ExportAddress,
+    offset: Offset,
+    buffer: ArrayBuffer,
+    cols: number,
+    rows: number
+  ) {
+    const addr = getExportAddress(osAddr) + offset;
+
+    this.updateView = new DataView(buffer, addr, 1);
+    this.cells = new DataView(buffer, addr + 1, rows * cols);
+  }
+
+  get update(): boolean {
+    return this.updateView.getUint8(0) > 0;
+  }
+
+  set update(v: boolean) {
+    this.updateView.setUint8(0, v ? 1 : 0);
   }
 }

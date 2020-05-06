@@ -271,11 +271,19 @@ var getExportAddress = function getExportAddress(v) {
   return typeof v === "number" ? v : v.value;
 };
 
+var configOffset = 0;
+var inputsOffset = configOffset + 256;
+var reservedOffset = inputsOffset + 256;
+var screenOffset = reservedOffset + 2560;
+var bgColorOffset = screenOffset + 65536;
+var fgColorOffset = bgColorOffset + 65536;
+
 var WasmProgram =
 /** @class */
 function () {
   function WasmProgram(state) {
     this.state = state;
+    this.appStateAddr = this.state.exports.init(this.osAddr);
   }
 
   WasmProgram.load = function (wasmSrc) {
@@ -345,19 +353,27 @@ function () {
     });
   };
 
-  WasmProgram.prototype.tick = function () {
-    this.state.exports.frame();
+  Object.defineProperty(WasmProgram.prototype, "osAddr", {
+    get: function get() {
+      return getExportAddress(this.state.exports.OS);
+    },
+    enumerable: true,
+    configurable: true
+  });
+
+  WasmProgram.prototype.tick = function (dt) {
+    this.state.exports.frame(this.osAddr, this.appStateAddr, dt);
   };
 
   WasmProgram.prototype.setInput = function (address, value) {
-    var inputsAddr = getExportAddress(this.state.exports.INPUTS);
+    var inputsAddr = getExportAddress(this.state.exports.OS) + inputsOffset;
     var view = new DataView(this.state.exports.memory.buffer, inputsAddr);
     view.setUint8(address, value);
   };
 
   Object.defineProperty(WasmProgram.prototype, "config", {
     get: function get() {
-      var view = new DataView(this.state.exports.memory.buffer, getExportAddress(this.state.exports.CONFIG), 2);
+      var view = new DataView(this.state.exports.memory.buffer, getExportAddress(this.state.exports.OS) + configOffset, 2);
       return {
         cols: view.getUint8(0),
         rows: view.getUint8(1)
@@ -368,20 +384,21 @@ function () {
   });
   Object.defineProperty(WasmProgram.prototype, "screen", {
     get: function get() {
-      var _a = this.config,
-          rows = _a.rows,
-          cols = _a.cols;
-      return new DataView(this.state.exports.memory.buffer, getExportAddress(this.state.exports.SCREEN), rows * cols);
+      return new ScreenData(this.state.exports.OS, screenOffset, this.state.exports.memory.buffer, this.config.cols, this.config.rows);
     },
     enumerable: true,
     configurable: true
   });
   Object.defineProperty(WasmProgram.prototype, "bgColors", {
     get: function get() {
-      var _a = this.config,
-          rows = _a.rows,
-          cols = _a.cols;
-      return new DataView(this.state.exports.memory.buffer, getExportAddress(this.state.exports.BG_COLOR), rows * cols);
+      return new ScreenData(this.state.exports.OS, bgColorOffset, this.state.exports.memory.buffer, this.config.cols, this.config.rows);
+    },
+    enumerable: true,
+    configurable: true
+  });
+  Object.defineProperty(WasmProgram.prototype, "fgColors", {
+    get: function get() {
+      return new ScreenData(this.state.exports.OS, fgColorOffset, this.state.exports.memory.buffer, this.config.cols, this.config.rows);
     },
     enumerable: true,
     configurable: true
@@ -390,6 +407,30 @@ function () {
 }();
 
 exports.WasmProgram = WasmProgram;
+
+var ScreenData =
+/** @class */
+function () {
+  function ScreenData(osAddr, offset, buffer, cols, rows) {
+    var addr = getExportAddress(osAddr) + offset;
+    this.updateView = new DataView(buffer, addr, 1);
+    this.cells = new DataView(buffer, addr + 1, rows * cols);
+  }
+
+  Object.defineProperty(ScreenData.prototype, "update", {
+    get: function get() {
+      return this.updateView.getUint8(0) > 0;
+    },
+    set: function set(v) {
+      this.updateView.setUint8(0, v ? 1 : 0);
+    },
+    enumerable: true,
+    configurable: true
+  });
+  return ScreenData;
+}();
+
+exports.ScreenData = ScreenData;
 },{}],"e29r":[function(require,module,exports) {
 "use strict";
 
@@ -10431,7 +10472,7 @@ function resizeCanvasToDisplaySize(canvas, multiplier) {
 },{}],"YGoC":[function(require,module,exports) {
 module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec2 position;\nattribute vec2 texCoord;\n\nvarying vec2 v_texCoord;\n\nvoid main() {\n  v_texCoord = texCoord;\n  gl_Position = vec4(position, 0.0, 1.0);\n}\n";
 },{}],"UwF1":[function(require,module,exports) {
-module.exports = "\nprecision mediump float;\n#define GLSLIFY 1\n\nvarying vec2 v_texCoord;\n\n// Colors used for rendering\nuniform sampler2D narrowFont;\nuniform sampler2D squareFont;\nuniform sampler2D palette;\n\n// Tables used for lookups\nuniform sampler2D charsTexture;\nuniform sampler2D backgroundColorTable;\n\nuniform vec2 fontTileCount;\nuniform vec2 screenTileCount;\n\nvoid main() {\n  vec4 charSample = texture2D(charsTexture, v_texCoord);\n  vec2 char = (charSample.xy * 255.0);\n\n  vec2 bgColLoc = texture2D(backgroundColorTable, v_texCoord).xy * 255.0;\n  vec4 backgroundColor = texture2D(palette, (bgColLoc + 0.5) / 16.0);\n\n  bool doubleWidth = charSample.z > 0.5;\n\n  vec2 fontTileCountScaled = doubleWidth\n    ? vec2(fontTileCount.x * 2.0, fontTileCount.y)\n    : fontTileCount;\n  vec2 spriteSize = 1.0 / fontTileCountScaled;\n  vec2 fontTextureStartOffset = char * spriteSize;\n\n  vec2 spriteOffset = vec2(\n    mod((v_texCoord.x * screenTileCount.x), 1.0),\n    mod((v_texCoord.y * screenTileCount.y), 1.0)\n  ) * spriteSize;\n\n  vec2 fontTextureOffset = fontTextureStartOffset + spriteOffset;\n\n  vec4 fontCol = doubleWidth\n    ? texture2D(squareFont, fontTextureOffset)\n    //? vec4(spriteOffset / spriteSize, 0.0, 1.0)\n    : texture2D(narrowFont, fontTextureOffset);\n\n  //gl_FragColor = vec4(v_texCoord.x, 0.0, v_texCoord.y, 1.0);\n  gl_FragColor = vec4(mix(backgroundColor.rgb, fontCol.rgb, fontCol.a), 1.0);\n}\n";
+module.exports = "\nprecision mediump float;\n#define GLSLIFY 1\n\nvarying vec2 v_texCoord;\n\n// Colors used for rendering\nuniform sampler2D narrowFont;\nuniform sampler2D squareFont;\nuniform sampler2D palette;\n\n// Tables used for lookups\nuniform sampler2D charsTexture;\nuniform sampler2D backgroundColorTable;\nuniform sampler2D foregroundColorTable;\n\nuniform vec2 fontTileCount;\nuniform vec2 screenTileCount;\n\nvoid main() {\n  vec4 charSample = texture2D(charsTexture, v_texCoord);\n  vec2 char = (charSample.xy * 255.0);\n\n  vec2 bgColLoc = texture2D(backgroundColorTable, v_texCoord).xy * 255.0;\n  vec4 backgroundColor = texture2D(palette, (bgColLoc + 0.5) / 16.0);\n  vec2 fgColLoc = texture2D(foregroundColorTable, v_texCoord).xy * 255.0;\n  vec4 foregroundColor = texture2D(palette, (fgColLoc + 0.5) / 16.0);\n\n  bool doubleWidth = charSample.z > 0.5;\n\n  vec2 fontTileCountScaled = doubleWidth\n    ? vec2(fontTileCount.x * 2.0, fontTileCount.y)\n    : fontTileCount;\n  vec2 spriteSize = 1.0 / fontTileCountScaled;\n  vec2 fontTextureStartOffset = char * spriteSize;\n\n  vec2 spriteOffset = vec2(\n    mod((v_texCoord.x * screenTileCount.x), 1.0),\n    mod((v_texCoord.y * screenTileCount.y), 1.0)\n  ) * spriteSize;\n\n  vec2 fontTextureOffset = fontTextureStartOffset + spriteOffset;\n\n  vec4 fontCol = doubleWidth\n    ? texture2D(squareFont, fontTextureOffset)\n    //? vec4(spriteOffset / spriteSize, 0.0, 1.0)\n    : texture2D(narrowFont, fontTextureOffset);\n\n  //gl_FragColor = vec4(v_texCoord.x, 0.0, v_texCoord.y, 1.0);\n  fontCol = fontCol * foregroundColor;\n  gl_FragColor = vec4(mix(backgroundColor.rgb, fontCol.rgb, fontCol.a), 1.0);\n}\n";
 },{}],"hqj0":[function(require,module,exports) {
 "use strict";
 
@@ -10570,6 +10611,7 @@ function () {
       charsTexture: opts.charsTable,
       palette: opts.palette,
       backgroundColorTable: opts.backgroundColorTable,
+      foregroundColorTable: opts.foregroundColorTable,
       fontTileCount: [16, 16],
       screenTileCount: [opts.cols, opts.rows]
     });
@@ -10864,6 +10906,7 @@ function () {
       virtualScreenProgram: new virtualscreen_1.VirtualScreenProgram(gl),
       charsTable: new lookup_table_1.LookupTable(gl),
       bgColorTable: new lookup_table_1.LookupTable(gl),
+      fgColorTable: new lookup_table_1.LookupTable(gl),
       narrowFontTexture: narrowFontTexture,
       squareFontTexture: squareFontTexture,
       virtualScreen: virtualScreen,
@@ -10891,7 +10934,6 @@ function () {
 
   Renderer.prototype.render = function (virtualScreenSize, rows, cols) {
     var gl = this.state.gl;
-    twgl.resizeCanvasToDisplaySize(gl.canvas, window.devicePixelRatio || 1);
 
     if (this.state.virtualScreen.width != virtualScreenSize.x || this.state.virtualScreen.height != virtualScreenSize.y) {
       twgl.resizeFramebufferInfo(gl, this.state.virtualScreen, VIRTUAL_SCREEN_ATT, virtualScreenSize.x, virtualScreenSize.y);
@@ -10907,7 +10949,8 @@ function () {
       squareFont: this.state.squareFontTexture,
       palette: this.state.palette,
       charsTable: this.state.charsTable.texture,
-      backgroundColorTable: this.state.bgColorTable.texture
+      backgroundColorTable: this.state.bgColorTable.texture,
+      foregroundColorTable: this.state.fgColorTable.texture
     });
     this.useRealScreen(); // How many virtual screens can we fit into the real display area?
     // (Rounded down so we only ever have integer multiples - other multiples
@@ -11077,6 +11120,8 @@ var load_1 = require("./wasm/load");
 
 var renderer_1 = require("./rendering/renderer");
 
+var twgl_js_1 = require("twgl.js");
+
 var pauseButton = document.getElementById("pause");
 var canvas = document.getElementById("canvas");
 var debugEl = document.getElementById("debug");
@@ -11125,7 +11170,7 @@ var manifest = {
 
 var start = function start(manifest) {
   return __awaiter(void 0, void 0, void 0, function () {
-    var renderer, program, paused, frameCount, _frame;
+    var renderer, program, paused, frameCount, t, _frame;
 
     return __generator(this, function (_a) {
       switch (_a.label) {
@@ -11165,7 +11210,7 @@ var start = function start(manifest) {
           });
           frameCount = 0;
 
-          _frame = function frame(_t) {
+          _frame = function frame(tNext) {
             var debug = {};
 
             if (paused) {
@@ -11174,19 +11219,53 @@ var start = function start(manifest) {
             }
 
             var start = performance.now();
-            program.tick();
+            var dt;
+
+            if (t == null) {
+              dt = 0.016;
+            } else {
+              dt = tNext - t;
+            }
+
+            t = tNext;
+            program.tick(dt);
+            var canvasResized = false; // Minimise DOM access by checking only every 10 frames
+
+            if (frameCount % 10 === 0) {
+              canvasResized = twgl_js_1.resizeCanvasToDisplaySize(canvas, window.devicePixelRatio || 1);
+            }
+
             var config = program.config;
             var screen = program.screen;
             var bgColors = program.bgColors;
-            renderer.state.bgColorTable.updateWithColorData(config.cols, config.rows, bgColors);
-            renderer.state.charsTable.updateWithCharData(config.cols, config.rows, screen);
+            var fgColors = program.fgColors;
+
+            if (fgColors.update) {
+              renderer.state.fgColorTable.updateWithColorData(config.cols, config.rows, fgColors.cells);
+            }
+
+            if (bgColors.update) {
+              renderer.state.bgColorTable.updateWithColorData(config.cols, config.rows, bgColors.cells);
+            }
+
+            if (screen.update) {
+              renderer.state.charsTable.updateWithCharData(config.cols, config.rows, screen.cells);
+            }
+
             var virtualScreenSize = {
               x: config.cols * manifest.fonts.gridSize.width,
               y: config.rows * manifest.fonts.gridSize.height
             };
-            renderer.render(virtualScreenSize, config.rows, config.cols);
-            renderer.state.gl.finish(); // This DOM update actually causes the most memory allocations,
+
+            if (screen.update || bgColors.update || fgColors.update || canvasResized) {
+              renderer.render(virtualScreenSize, config.rows, config.cols);
+              renderer.state.gl.finish();
+              fgColors.update = false;
+              bgColors.update = false;
+              screen.update = false;
+            } // This DOM update actually causes the most memory allocations,
             // so only do it every 20 frames
+
 
             if (frameCount % 20 === 0) {
               var end = performance.now();
@@ -11209,5 +11288,5 @@ var start = function start(manifest) {
 };
 
 start(manifest);
-},{"./wasm/load":"FpUS","./rendering/renderer":"zUtG"}]},{},["ZCfc"], null)
+},{"./wasm/load":"FpUS","./rendering/renderer":"zUtG","twgl.js":"e29r"}]},{},["ZCfc"], null)
 //# sourceMappingURL=/main.js.map

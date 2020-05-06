@@ -42,6 +42,7 @@ export class FontSpriteProgram {
     palette: WebGLTexture;
     charsTable: WebGLTexture;
     backgroundColorTable: WebGLTexture;
+    foregroundColorTable: WebGLTexture;
   }) {
     const { gl } = this.state;
 
@@ -60,6 +61,7 @@ export class FontSpriteProgram {
       charsTexture: opts.charsTable,
       palette: opts.palette,
       backgroundColorTable: opts.backgroundColorTable,
+      foregroundColorTable: opts.foregroundColorTable,
       fontTileCount: [16, 16],
       screenTileCount: [opts.cols, opts.rows],
     });

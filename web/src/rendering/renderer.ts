@@ -2,7 +2,7 @@ import { FontSpriteProgram } from "./fontsprite/fontsprite";
 import * as twgl from "twgl.js";
 import { VirtualScreenProgram } from "./virtualscreen/virtualscreen";
 import { Vec2 } from "../util/vec2";
-import {LookupTable} from "./lookup_table";
+import { LookupTable } from "./lookup_table";
 
 const VIRTUAL_SCREEN_ATT = [
   {
@@ -26,6 +26,7 @@ export class Renderer {
     palette: WebGLTexture;
     charsTable: LookupTable;
     bgColorTable: LookupTable;
+    fgColorTable: LookupTable;
     virtualScreen: twgl.FramebufferInfo;
   };
 
@@ -63,6 +64,7 @@ export class Renderer {
       virtualScreenProgram: new VirtualScreenProgram(gl),
       charsTable: new LookupTable(gl),
       bgColorTable: new LookupTable(gl),
+      fgColorTable: new LookupTable(gl),
       narrowFontTexture,
       squareFontTexture,
       virtualScreen,
@@ -91,11 +93,6 @@ export class Renderer {
   render(virtualScreenSize: Vec2, rows: number, cols: number) {
     const { gl } = this.state;
 
-    twgl.resizeCanvasToDisplaySize(
-      gl.canvas as HTMLCanvasElement
-      window.devicePixelRatio || 1
-    );
-
     if (
       this.state.virtualScreen.width != virtualScreenSize.x ||
       this.state.virtualScreen.height != virtualScreenSize.y
@@ -120,6 +117,7 @@ export class Renderer {
       palette: this.state.palette,
       charsTable: this.state.charsTable.texture,
       backgroundColorTable: this.state.bgColorTable.texture,
+      foregroundColorTable: this.state.fgColorTable.texture,
     });
 
     this.useRealScreen();

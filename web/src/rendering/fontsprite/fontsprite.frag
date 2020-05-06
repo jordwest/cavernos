@@ -11,6 +11,7 @@ uniform sampler2D palette;
 // Tables used for lookups
 uniform sampler2D charsTexture;
 uniform sampler2D backgroundColorTable;
+uniform sampler2D foregroundColorTable;
 
 uniform vec2 fontTileCount;
 uniform vec2 screenTileCount;
@@ -21,6 +22,8 @@ void main() {
 
   vec2 bgColLoc = texture2D(backgroundColorTable, v_texCoord).xy * 255.0;
   vec4 backgroundColor = texture2D(palette, (bgColLoc + 0.5) / 16.0);
+  vec2 fgColLoc = texture2D(foregroundColorTable, v_texCoord).xy * 255.0;
+  vec4 foregroundColor = texture2D(palette, (fgColLoc + 0.5) / 16.0);
 
   bool doubleWidth = charSample.z > 0.5;
 
@@ -43,5 +46,6 @@ void main() {
     : texture2D(narrowFont, fontTextureOffset);
 
   //gl_FragColor = vec4(v_texCoord.x, 0.0, v_texCoord.y, 1.0);
+  fontCol = fontCol * foregroundColor;
   gl_FragColor = vec4(mix(backgroundColor.rgb, fontCol.rgb, fontCol.a), 1.0);
 }
