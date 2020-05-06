@@ -78,7 +78,7 @@ const start = async (manifest: ManifestV1) => {
     if (t == null) {
       dt = 0.016;
     } else {
-      dt = tNext - t;
+      dt = (tNext - t) / 1000;
     }
     t = tNext;
 
