@@ -10625,7 +10625,7 @@ exports.FontSpriteProgram = FontSpriteProgram;
 },{"twgl.js":"e29r","./fontsprite.vert":"YGoC","./fontsprite.frag":"UwF1","../../util/quad":"mCSj"}],"mx25":[function(require,module,exports) {
 module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nattribute vec2 position;\nattribute vec2 texCoord;\n\nvarying vec2 v_texCoord;\n\nuniform vec2 scale;\n\nvoid main() {\n  v_texCoord = texCoord;\n  gl_Position = vec4(position * scale, 0.0, 1.0);\n}\n";
 },{}],"bMyr":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nvarying vec2 v_texCoord;\n\nuniform sampler2D virtualScreen;\n\nvoid main() {\n  vec4 col = texture2D(virtualScreen, v_texCoord);\n  gl_FragColor = col;\n}\n";
+module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nvarying vec2 v_texCoord;\n\nuniform sampler2D virtualScreen;\nuniform vec2 virtualScreenSize;\nuniform sampler2D scanlineTexture;\n\nvoid main() {\n  vec4 col = texture2D(virtualScreen, v_texCoord);\n\n  // Grab a pixel to the left for some bleed\n  vec2 left = vec2(-1.0 / virtualScreenSize.x, 0.0);\n  vec4 bleedCol = texture2D(virtualScreen, v_texCoord + left);\n  vec4 bleedCol2 = texture2D(virtualScreen, v_texCoord + left + left);\n\n  vec4 scanline = texture2D(scanlineTexture, v_texCoord * virtualScreenSize);\n\n  gl_FragColor = (col * 0.6 + bleedCol * 0.2 + bleedCol2 * 0.2) * scanline;\n}\n";
 },{}],"mnlI":[function(require,module,exports) {
 "use strict";
 
@@ -10673,14 +10673,24 @@ function () {
     };
     var programInfo = twgl.createProgramInfo(gl, [virtualscreen_vert_1.default, virtualscreen_frag_1.default]);
     var bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
+    var scanlineTexture = twgl.createTexture(gl, {
+      src: new Uint8Array([// A
+      255, 255, 255, 255, //
+      255, 255, 255, 255, //
+      255, 255, 255, 255, //
+      90, 90, 90, 255]),
+      width: 1,
+      height: 4
+    });
     this.state = {
       gl: gl,
       programInfo: programInfo,
-      bufferInfo: bufferInfo
+      bufferInfo: bufferInfo,
+      scanlineTexture: scanlineTexture
     };
   }
 
-  VirtualScreenProgram.prototype.render = function (virtualScreen, drawSize) {
+  VirtualScreenProgram.prototype.render = function (virtualScreen, drawSize, virtualScreenSize) {
     var gl = this.state.gl;
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND);
@@ -10689,7 +10699,9 @@ function () {
     twgl.setBuffersAndAttributes(gl, this.state.programInfo, this.state.bufferInfo);
     twgl.setUniforms(this.state.programInfo, {
       virtualScreen: virtualScreen,
-      scale: scale
+      virtualScreenSize: [virtualScreenSize.x, virtualScreenSize.y],
+      scale: scale,
+      scanlineTexture: this.state.scanlineTexture
     });
     twgl.drawBufferInfo(gl, this.state.bufferInfo);
   };
@@ -10958,8 +10970,8 @@ function () {
 
     var fitX = Math.floor(gl.canvas.width / this.state.virtualScreen.width);
     var fitY = Math.floor(gl.canvas.height / this.state.virtualScreen.height);
-    var scale = Math.max(1.0 * devicePixelRatio, Math.min(fitX, fitY));
-    this.state.virtualScreenProgram.render(this.state.virtualScreen.attachments[0], vec2_1.Vec2.scalarMult(virtualScreenSize, scale));
+    var scale = Math.max(1.0, Math.min(fitX, fitY));
+    this.state.virtualScreenProgram.render(this.state.virtualScreen.attachments[0], vec2_1.Vec2.scalarMult(virtualScreenSize, scale), virtualScreenSize);
   };
 
   return Renderer;

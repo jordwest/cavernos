@@ -10,4 +10,5 @@ crate-type = ["cdylib"]
 [dependencies]
 wee_alloc = "*"
 noise = "0.6"
+rand = "0.7"
 

@@ -2,12 +2,14 @@ import * as twgl from "twgl.js";
 import vertSrc from "./virtualscreen.vert";
 import fragSrc from "./virtualscreen.frag";
 import { quad } from "../../util/quad";
+import { Vec2 } from "../../util/vec2";
 
 type State = {
   gl: WebGLRenderingContext;
 
   programInfo: twgl.ProgramInfo;
   bufferInfo: twgl.BufferInfo;
+  scanlineTexture: WebGLTexture;
 };
 
 export class VirtualScreenProgram {
@@ -26,15 +28,45 @@ export class VirtualScreenProgram {
 
     const programInfo = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
     const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
+    const scanlineTexture = twgl.createTexture(gl, {
+      src: new Uint8Array([
+        // A
+        255,
+        255,
+        255,
+        255,
+
+        //
+        255,
+        255,
+        255,
+        255,
+
+        //
+        255,
+        255,
+        255,
+        255,
+
+        //
+        90,
+        90,
+        90,
+        255,
+      ]),
+      width: 1,
+      height: 4,
+    });
 
     this.state = {
       gl,
       programInfo,
       bufferInfo,
+      scanlineTexture,
     };
   }
 
-  render(virtualScreen: WebGLTexture, drawSize: Vec2) {
+  render(virtualScreen: WebGLTexture, drawSize: Vec2, virtualScreenSize: Vec2) {
     const { gl } = this.state;
 
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -50,7 +82,9 @@ export class VirtualScreenProgram {
     );
     twgl.setUniforms(this.state.programInfo, {
       virtualScreen,
+      virtualScreenSize: [virtualScreenSize.x, virtualScreenSize.y],
       scale,
+      scanlineTexture: this.state.scanlineTexture,
     });
     twgl.drawBufferInfo(gl, this.state.bufferInfo);
   }

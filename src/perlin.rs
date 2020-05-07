@@ -22,8 +22,6 @@ fn map_range(src_a: f32, src_b: f32, dst_a: f32, dst_b: f32, val: f32) -> f32 {
   dst_a + (proportion * dst_range)
 }
 
-static mut FRAME_NUMBER: usize = 0;
-
 pub struct PerlinState {
   t: f64,
   noise: noise::Perlin,
@@ -38,16 +36,14 @@ impl PerlinState {
 }
 
 pub fn frame(os: &mut cavernos::CavernOS, perlinState: &mut PerlinState, dt: f64) {
-  unsafe {
-    if os.inputs[2] > 0 {
-      perlinState.t -= 1.0;
-    } else if os.inputs[3] > 0 {
-      perlinState.t += dt * 3.0;
-    } else if os.inputs[5] > 0 {
-      // Do nothing
-    } else {
-      perlinState.t += dt;
-    }
+  if os.inputs[2] > 0 {
+    perlinState.t -= 1.0;
+  } else if os.inputs[3] > 0 {
+    perlinState.t += dt * 3.0;
+  } else if os.inputs[5] > 0 {
+    // Do nothing
+  } else {
+    perlinState.t += dt;
   }
 
   let cols = os.config.cols;

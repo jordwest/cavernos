@@ -126,11 +126,12 @@ export class Renderer {
     // look crap with nearest neighbour (pixel) scaling)
     const fitX = Math.floor(gl.canvas.width / this.state.virtualScreen.width);
     const fitY = Math.floor(gl.canvas.height / this.state.virtualScreen.height);
-    const scale = Math.max(1.0 * devicePixelRatio, Math.min(fitX, fitY));
+    const scale = Math.max(1.0, Math.min(fitX, fitY));
 
     this.state.virtualScreenProgram.render(
       this.state.virtualScreen.attachments[0],
-      Vec2.scalarMult(virtualScreenSize, scale)
+      Vec2.scalarMult(virtualScreenSize, scale),
+      virtualScreenSize
     );
   }
 }

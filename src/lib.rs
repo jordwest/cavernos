@@ -1,4 +1,5 @@
 mod cavernos;
+mod matrix;
 mod perlin;
 mod state;
 
@@ -23,7 +24,8 @@ extern "C" fn init(_os: &mut cavernos::CavernOS) -> &mut AppState {
   // app's state once, and then passing it back to the host.
   let mut state = unsafe { &mut STATE };
 
-  state.program = ProgramState::Perlin(perlin::PerlinState::new());
+  //state.program = ProgramState::Perlin(perlin::PerlinState::new());
+  state.program = ProgramState::Matrix(matrix::MatrixState::new());
 
   return state;
 }
@@ -34,6 +36,7 @@ extern "C" fn frame(os: &mut cavernos::CavernOS, app_state: &mut AppState, dt: f
   match &mut app_state.program {
     ProgramState::None => (),
     ProgramState::Perlin(ref mut p) => perlin::frame(os, p, dt),
+    ProgramState::Matrix(ref mut m) => matrix::frame(os, m, dt),
   }
 }
 
