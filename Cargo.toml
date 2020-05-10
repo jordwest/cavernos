@@ -11,4 +11,4 @@ crate-type = ["cdylib"]
 wee_alloc = "*"
 noise = "0.6"
 rand = "0.7"
-
+bresenham = "0.1"

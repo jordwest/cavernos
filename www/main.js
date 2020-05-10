@@ -11151,20 +11151,20 @@ var manifest = {
   palette: "./palette.png",
   inputMappings: [{
     address: 0,
-    comment: "Move Up",
-    keys: ["ArrowUp", "w"]
+    comment: "Select Up",
+    keys: ["ArrowUp"]
   }, {
     address: 1,
-    comment: "Move Down",
-    keys: ["ArrowDown", "s"]
+    comment: "Select Down",
+    keys: ["ArrowDown"]
   }, {
     address: 2,
-    comment: "Move Left",
-    keys: ["ArrowLeft", "a"]
+    comment: "Select Left",
+    keys: ["ArrowLeft"]
   }, {
     address: 3,
-    comment: "Move Right",
-    keys: ["ArrowRight", "d"]
+    comment: "Select Right",
+    keys: ["ArrowRight"]
   }, {
     address: 5,
     comment: "Accept",
@@ -11177,6 +11177,26 @@ var manifest = {
     address: 7,
     comment: "Shift",
     keys: ["Shift"]
+  }, {
+    address: 8,
+    comment: "Hide/Show UI",
+    keys: ["h"]
+  }, {
+    address: 9,
+    comment: "Move Up",
+    keys: ["w"]
+  }, {
+    address: 10,
+    comment: "Move Down",
+    keys: ["s"]
+  }, {
+    address: 11,
+    comment: "Move Left",
+    keys: ["a"]
+  }, {
+    address: 12,
+    comment: "Move Right",
+    keys: ["d"]
   }]
 };
 
@@ -11291,6 +11311,9 @@ var start = function start(manifest) {
 
           _frame();
 
+          canvas.addEventListener("click", function () {
+            canvas.requestFullscreen();
+          });
           return [2
           /*return*/
           ];

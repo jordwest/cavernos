@@ -19,13 +19,18 @@ const manifest: ManifestV1 = {
   },
   palette: "./palette.png",
   inputMappings: [
-    { address: 0, comment: "Move Up", keys: ["ArrowUp", "w"] },
-    { address: 1, comment: "Move Down", keys: ["ArrowDown", "s"] },
-    { address: 2, comment: "Move Left", keys: ["ArrowLeft", "a"] },
-    { address: 3, comment: "Move Right", keys: ["ArrowRight", "d"] },
+    { address: 0, comment: "Select Up", keys: ["ArrowUp"] },
+    { address: 1, comment: "Select Down", keys: ["ArrowDown"] },
+    { address: 2, comment: "Select Left", keys: ["ArrowLeft"] },
+    { address: 3, comment: "Select Right", keys: ["ArrowRight"] },
     { address: 5, comment: "Accept", keys: ["Enter", " "] },
     { address: 6, comment: "Cancel", keys: ["Escape"] },
     { address: 7, comment: "Shift", keys: ["Shift"] },
+    { address: 8, comment: "Hide/Show UI", keys: ["h"] },
+    { address: 9, comment: "Move Up", keys: ["w"] },
+    { address: 10, comment: "Move Down", keys: ["s"] },
+    { address: 11, comment: "Move Left", keys: ["a"] },
+    { address: 12, comment: "Move Right", keys: ["d"] },
   ],
 };
 
@@ -147,6 +152,10 @@ const start = async (manifest: ManifestV1) => {
     requestAnimationFrame(frame);
   };
   frame();
+
+  canvas.addEventListener("click", () => {
+    canvas.requestFullscreen();
+  });
 };
 
 start(manifest);
