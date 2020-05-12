@@ -6,36 +6,17 @@ const pauseButton = document.getElementById("pause") as HTMLButtonElement;
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const debugEl = document.getElementById("debug") as HTMLPreElement;
 
-const manifest: ManifestV1 = {
-  manifestVersion: 1,
-  program: "./wasm_minimal.wasm",
-  fonts: {
-    gridSize: {
-      width: 8,
-      height: 16,
-    },
-    narrow: "./text-font.png",
-    square: "./text-font-square.png",
-  },
-  palette: "./palette.png",
-  inputMappings: [
-    { address: 0, comment: "Select Up", keys: ["ArrowUp"] },
-    { address: 1, comment: "Select Down", keys: ["ArrowDown"] },
-    { address: 2, comment: "Select Left", keys: ["ArrowLeft"] },
-    { address: 3, comment: "Select Right", keys: ["ArrowRight"] },
-    { address: 5, comment: "Accept", keys: ["Enter", " "] },
-    { address: 6, comment: "Cancel", keys: ["Escape"] },
-    { address: 7, comment: "Shift", keys: ["Shift"] },
-    { address: 8, comment: "Hide/Show UI", keys: ["h"] },
-    { address: 9, comment: "Move Up", keys: ["w"] },
-    { address: 10, comment: "Move Down", keys: ["s"] },
-    { address: 11, comment: "Move Left", keys: ["a"] },
-    { address: 12, comment: "Move Right", keys: ["d"] },
-  ],
-};
+fetch("./manifest.json")
+  .then((response) => response.json())
+  .then((json) => start(json));
 
 const start = async (manifest: ManifestV1) => {
-  if (manifest.version > 1) {
+  if (manifest.manifestVersion == null) {
+    console.log(manifest);
+    throw new Error("Manifest version not specified");
+  }
+  if (manifest.manifestVersion > 1) {
+    console.log(manifest);
     throw new Error("Only manifest version 1 is currently supported");
   }
 
@@ -153,9 +134,7 @@ const start = async (manifest: ManifestV1) => {
   };
   frame();
 
-  canvas.addEventListener("click", () => {
+  canvas.addEventListener("dblclick", () => {
     canvas.requestFullscreen();
   });
 };
-
-start(manifest);

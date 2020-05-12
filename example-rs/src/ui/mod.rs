@@ -1,4 +1,4 @@
-mod elements;
+pub mod elements;
 
 use crate::cavernos;
 use crate::geometry::rect::Rect;
@@ -37,10 +37,16 @@ pub fn frame(os: &mut cavernos::CavernOS, app_state: &mut AppState, location: Re
                         Box::new(Style {
                             bg_color: None,
                             fg_color: Some(2),
-                            child: Text::from_segments(
-                                vec![TextSegment::Text(format!("Rows"))],
-                                TextAlign::Middle,
-                            ),
+                            child: Padding {
+                                left: 0,
+                                right: 0,
+                                top: 1,
+                                bottom: 0,
+                                child: Text::from_segments(
+                                    vec![TextSegment::Text(format!("Rows"))],
+                                    TextAlign::Middle,
+                                ),
+                            },
                         }),
                         Box::new(Selector {
                             is_active: match app_state.selected_element {

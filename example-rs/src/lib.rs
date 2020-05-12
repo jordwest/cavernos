@@ -47,6 +47,8 @@ const MOVE_DOWN: usize = 1;
 const MOVE_LEFT: usize = 2;
 const MOVE_RIGHT: usize = 3;
 
+const UI_WIDTH: u8 = 28;
+
 #[no_mangle]
 extern "C" fn frame(os: &mut cavernos::CavernOS, app_state: &mut AppState, dt: f64) {
     if os.get_input_latch(MOVE_UP) {
@@ -78,7 +80,7 @@ extern "C" fn frame(os: &mut cavernos::CavernOS, app_state: &mut AppState, dt: f
     if app_state.ui_visible {
         let ui_rect = Rect {
             top: 1,
-            left: (app_state.cols - 30) as i32,
+            left: (app_state.cols - UI_WIDTH - 2) as i32,
             right: (app_state.cols - 2) as i32,
             bottom: (app_state.rows - 2) as i32,
         };

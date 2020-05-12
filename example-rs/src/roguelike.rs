@@ -35,6 +35,8 @@ const MOVE_DOWN: usize = 10;
 const MOVE_LEFT: usize = 11;
 const MOVE_RIGHT: usize = 12;
 
+const SIDEBAR_WIDTH: u8 = 30;
+
 impl RoguelikeState {
     pub fn new() -> RoguelikeState {
         let mut state = RoguelikeState {
@@ -147,7 +149,7 @@ impl RoguelikeState {
 
     fn map_coord_to_screen(&self, os: &mut CavernOS, map: Vec2d<isize>) -> Option<Vec2d<u8>> {
         // How many tiles can we fit on screen?
-        let cols = (os.config.cols / 2) as isize; // Divide by two since we're rendering square tiles (which take two cells)
+        let cols = ((os.config.cols - SIDEBAR_WIDTH) / 2) as isize; // Divide by two since we're rendering square tiles (which take two cells)
         let rows = os.config.rows as isize;
 
         // Find top left of screen in map relative coord
@@ -265,7 +267,7 @@ pub fn frame(os: &mut CavernOS, state: &mut RoguelikeState, _dt: f64) {
     state.process_inputs(os);
 
     // How many tiles can we fit on screen?
-    let cols = (os.config.cols / 2) as isize; // Divide by two since we're rendering square tiles (which take two cells)
+    let cols = ((os.config.cols - SIDEBAR_WIDTH) / 2) as isize; // Divide by two since we're rendering square tiles (which take two cells)
     let rows = os.config.rows as isize;
 
     // The first tile we'll render in the top left (calculated by positioning the player in the
@@ -345,8 +347,32 @@ pub fn frame(os: &mut CavernOS, state: &mut RoguelikeState, _dt: f64) {
         }
     }
 
+    // Draw the player
     state.set_char(os, state.player_pos.x, state.player_pos.y, 64);
     state.set_fg_color(os, state.player_pos.x, state.player_pos.y, 124);
     state.set_bg_color(os, state.player_pos.x, state.player_pos.y, 109);
     state.rendered = true;
+
+    use crate::geometry::Rect;
+    use crate::ui::elements::{Clear, Element, Style, Text, TextAlign, TextSegment};
+
+    // Draw instructions
+    let info = Style {
+        bg_color: Some(0),
+        fg_color: Some(1),
+        child: Clear {
+            child: Text::from_segments(
+                vec![TextSegment::Text(format!("WASD to move"))],
+                TextAlign::Middle,
+            ),
+        },
+    };
+    let info_rect = Rect {
+        top: (os.config.rows - 2) as i32,
+        bottom: (os.config.rows - 1) as i32,
+        left: 1,
+        right: (os.config.cols - 30) as i32,
+    };
+
+    info.render(os, info_rect);
 }
