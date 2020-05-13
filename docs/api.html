@@ -112,7 +112,7 @@ table td {
           <td><a href="#screendata">Screen Data</a></td>
           <td>65536</td>
           <td>Characters</td>
-          <td>Specifies the index of the character to display in a given cell.</td>
+          <td>Specifies the index of the character to display in a given cell. Full-width characters use two bytes, where the first character must be set to 255 to tell the renderer that it's a full-width character, and the following byte specifies the index of the full-width character to display.</td>
         </tr>
 
         <tr>
