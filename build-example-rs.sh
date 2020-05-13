@@ -18,5 +18,3 @@ cp example-rs/assets/text-font-square.png ./dist/
 (cd example-rs && ./build.sh)
 cp example-rs/target/wasm32-unknown-unknown/release/cavernos_example_rs_optimised.wasm ./dist/
 
-# Finally, serve the dist folder
-(cd dist && http)

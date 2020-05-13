@@ -35,7 +35,6 @@ extern "C" fn init(os: &mut cavernos::CavernOS) -> &mut AppState {
     // app's state once, and then passing it back to the host.
     let mut state = unsafe { &mut STATE };
 
-    //state.program = ProgramState::Perlin(perlin::PerlinState::new());
     state.program = ProgramState::Matrix(matrix::MatrixState::new());
 
     return state;
