@@ -34,6 +34,7 @@ CavernOS has a few limitations, but you could see these as helping with creativi
 These are features that aren't currently implemented, but could potentially be added. For now this is just an experimental project for me, so I'm not sure how much time I'll invest at this stage, but if these are things you think you'd use, please open an issue and let me know.
 
  - **Audio support**
+ - **Other inputs devices** - mouse, gamepad, and touchscreen inputs would be useful
  - **Terminal host** - There's nothing about WebAssembly that limits it to being run on the web. With tools like [Wasmer](https://wasmer.io/), theoretically a native host could be built that runs the exact same `.wasm` module, but in a native application - and could even render to a terminal for access via SSH etc. Compile your game once, run it everywhere.
  - **Persistence** - There's currently no way to persist any savegames, so at this stage it's probably not very useful for anything longer than coffee break games.
 
