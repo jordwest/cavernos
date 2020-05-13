@@ -2,7 +2,7 @@
 
 CavernOS is an experimental minimal runtime for building DOS-era extended ASCII based games and demos that run on the web (via WebAssembly).
 
-## [✨ Demo ✨](https://jordwest.github.io/cavernos/demo/)
+**[✨ Demo ✨](https://jordwest.github.io/cavernos/demo/)**
 
 ## Screenshots
 
@@ -64,7 +64,7 @@ cd dist && http
 
 ### 3. Building your own app
 
-Take a look at the `build-example-rs.sh` script to see what files are needed for your app. If you're building something with Rust, you can use the `example-rs` folder as an example to work from. If you're working with C/C++/another language, you'll need to write your own code to read and write to the shared host memory. See [/docs/api](/docs/api) for details.
+Take a look at the `build-example-rs.sh` script to see what files are needed for your app. If you're building something with Rust, you can use the `example-rs` folder as an example to work from. If you're working with C/C++/another language, you'll need to write your own code to read and write to the shared host memory. See [/docs/api](https://jordwest.github.io/cavernos/api.html) for details.
 
 #### manifest.json
 
@@ -80,6 +80,9 @@ This file contains specifies configuration for your application.
     - **address** - The memory address in the input block that will be set/unset by these keys
     - **comment** - An optional comment describing the key
     - **keys** - A list of keys that will trigger this memory address. See [MDN for a listing of valid values](https://developer.cdn.mozilla.net/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)
+#### API reference
+
+The interface between the host and your app happens via a shared block of memory. See [/docs/api](https://jordwest.github.io/cavernos/api.html) for details.
 
 ### 4. Distributing
 
