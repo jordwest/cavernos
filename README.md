@@ -2,6 +2,8 @@
 
 CavernOS is an experimental minimal runtime for building DOS-era extended ASCII based games and demos that run on the web (via WebAssembly).
 
+## [✨ Demo ✨](https://jordwest.github.io/cavernos/demo/)
+
 ## Screenshots
 
 ![Matrix program](docs/demo/screens/matrix.png)
@@ -10,13 +12,13 @@ CavernOS is an experimental minimal runtime for building DOS-era extended ASCII 
 
 ## Features
 
+ - **Choose your language** - You can write in [any language that compiles to WebAssembly](https://github.com/appcypher/awesome-wasm-langs). However, [Rust](https://www.rust-lang.org/) seems to have the best support for WebAssembly as a target currently, the demo application is built with Rust and this README is written mostly with Rust in mind.
  - **Distribute to the web** - No need to compile for different operating systems - anyone with a modern web browser can interact with your creation.
  - **Dynamic colouring of glyphs** - All font sprites can be dynamically coloured at runtime. If you create a single tile to represent a creature, this means you can choose its colour at runtime allowing for up to 256 different colour variations of that creature (as well as 256 different background colour variations).
  - **Coexisting full and half-width fonts (or tiles)** - Support for using both half and full width font sprites in the same screen, allowing a square tileset with readable UI - inspired by [Josh Ge's article on fonts in Cogmind](https://www.gridsagegames.com/blog/2014/09/fonts-in-roguelikes/).
  - **Pixel-perfect auto-scaling** - The display area is automatically scaled up in integer increments to preserve the pixel-perfect edges of the font, including on HiDPI screens. At 2x upscaling and larger, there's an added scanline effect to add a bit more retro feel.
  - **Near native performance** - WebAssembly allows near native performance in the browser, by allowing browsers to compile WebAssembly instructions to native instructions as they parse the code. There's no builtin garbage collection, so you have full control over the module's memory. This means any map generation, complex AI or calculations can happen almost as if it were running natively (albeit single-threaded). Additionally the host uses WebGL for low overhead hardware accelerated rendering, running at a smooth 60 FPS, just in case you need it.
  - **Tiny bundles** - The entire demo build (host + app) shown in the screenshots above is currently around 160KB, with the demo app taking around 70KB of that. You can produce WebAssembly modules as small as a few hundred bytes. In contrast most general game engines bundle a whole lot of stuff in their web builds, typically producing several megabyte builds which is overkill for something like an ASCII based roguelike.
- - **Choose your language** - You can write in [any language that compiles to WebAssembly](https://github.com/appcypher/awesome-wasm-langs). However, [Rust](https://www.rust-lang.org/) seems to have the best support for WebAssembly as a target currently, the demo application is built with Rust and this README is written mostly with Rust in mind.
 
 ## Limitations
 
