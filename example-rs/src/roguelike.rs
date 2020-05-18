@@ -105,8 +105,11 @@ impl RoguelikeState {
         }
     }
 
-    fn tile_at(&self, x: isize, y: isize) -> MapTile {
-        let i = ((y * self.width) + x) as usize;
+    fn tile_at(&self, pos: Vec2d<isize>) -> MapTile {
+        if !self.inside_bounds(pos) {
+            return MapTile::Rock;
+        }
+        let i = ((pos.y * self.width) + pos.x) as usize;
         self.map[i]
     }
 
@@ -212,7 +215,7 @@ impl RoguelikeState {
                     return 0.;
                 }
 
-                if let MapTile::Rock = self.tile_at(x as isize, y as isize) {
+                if let MapTile::Rock = self.tile_at(Vec2d { x, y }) {
                     return 0.;
                 }
 
@@ -251,7 +254,7 @@ impl RoguelikeState {
         if let Some(move_by) = move_by {
             let new_pos = self.player_pos + move_by;
 
-            match self.tile_at(new_pos.x, new_pos.y) {
+            match self.tile_at(new_pos) {
                 MapTile::Rock => (),
                 MapTile::Floor => {
                     if self.inside_bounds(new_pos) {
@@ -286,22 +289,51 @@ pub fn frame(os: &mut CavernOS, state: &mut RoguelikeState, _dt: f64) {
                 x: tile_x,
                 y: tile_y,
             }) {
+                os.set_char(cell_x, cell_y, 0);
+                os.set_char(cell_x + 1, cell_y, 0);
                 continue;
             }
 
-            let tile = state.tile_at(tile_x, tile_y);
+            let tile = state.tile_at(Vec2d {
+                x: tile_x,
+                y: tile_y,
+            });
 
             let c = match tile {
                 MapTile::Rock => {
                     let surrounding_tiles = (
-                        state.tile_at(tile_x - 1, tile_y),
-                        state.tile_at(tile_x + 1, tile_y),
-                        state.tile_at(tile_x, tile_y - 1),
-                        state.tile_at(tile_x, tile_y + 1),
-                        state.tile_at(tile_x - 1, tile_y - 1),
-                        state.tile_at(tile_x + 1, tile_y - 1),
-                        state.tile_at(tile_x - 1, tile_y + 1),
-                        state.tile_at(tile_x + 1, tile_y + 1),
+                        state.tile_at(Vec2d {
+                            x: tile_x - 1,
+                            y: tile_y,
+                        }),
+                        state.tile_at(Vec2d {
+                            x: tile_x + 1,
+                            y: tile_y,
+                        }),
+                        state.tile_at(Vec2d {
+                            x: tile_x,
+                            y: tile_y - 1,
+                        }),
+                        state.tile_at(Vec2d {
+                            x: tile_x,
+                            y: tile_y + 1,
+                        }),
+                        state.tile_at(Vec2d {
+                            x: tile_x - 1,
+                            y: tile_y - 1,
+                        }),
+                        state.tile_at(Vec2d {
+                            x: tile_x + 1,
+                            y: tile_y - 1,
+                        }),
+                        state.tile_at(Vec2d {
+                            x: tile_x - 1,
+                            y: tile_y + 1,
+                        }),
+                        state.tile_at(Vec2d {
+                            x: tile_x + 1,
+                            y: tile_y + 1,
+                        }),
                     );
                     match surrounding_tiles {
                         // Nothing but rock, don't render this rock
@@ -327,7 +359,10 @@ pub fn frame(os: &mut CavernOS, state: &mut RoguelikeState, _dt: f64) {
             let light = state.calculate_light_at(tile_x, tile_y);
 
             if light > 0.0 {
-                let light_color = match state.tile_at(tile_x, tile_y) {
+                let light_color = match state.tile_at(Vec2d {
+                    x: tile_x,
+                    y: tile_y,
+                }) {
                     MapTile::Floor => 99,
                     MapTile::Rock => 104,
                 };
