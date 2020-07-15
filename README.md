@@ -12,7 +12,7 @@ CavernOS is an experimental minimal runtime for building DOS-era extended ASCII 
 
 ## Features
 
- - **Choose your language** - You can write in [any language that compiles to WebAssembly](https://github.com/appcypher/awesome-wasm-langs). However, [Rust](https://www.rust-lang.org/) seems to have the best support for WebAssembly as a target currently, the demo application is built with Rust and this README is written mostly with Rust in mind.
+ - **Choose your language** - You can write in any language that compiles to pure WebAssembly and doesn't generate a JavaScript shim. Currently this includes C/C++ and Rust. However, [Rust](https://www.rust-lang.org/) seems to have the best support for WebAssembly as a target currently, the demo application is built with Rust and this README is written mostly with Rust in mind.
  - **Distribute to the web** - No need to compile for different operating systems - anyone with a modern web browser can interact with your creation.
  - **Dynamic colouring of glyphs** - All font sprites can be dynamically coloured at runtime. If you create a single tile to represent a creature, this means you can choose its colour at runtime allowing for up to 256 different colour variations of that creature (as well as 256 different background colour variations).
  - **Coexisting full and half-width fonts (or tiles)** - Support for using both half and full width font sprites in the same screen, allowing a square tileset with readable UI - inspired by [Josh Ge's article on fonts in Cogmind](https://www.gridsagegames.com/blog/2014/09/fonts-in-roguelikes/).
