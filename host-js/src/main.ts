@@ -20,7 +20,12 @@ const start = async (manifest: ManifestV1) => {
     throw new Error("Only manifest version 1 is currently supported");
   }
 
-  const renderer = new Renderer(canvas, manifest.fonts, manifest.palette);
+  const renderer = new Renderer(
+    canvas,
+    manifest.fonts,
+    manifest.palette,
+    manifest.postProcessing === false ? false : true
+  );
   const program = await WasmProgram.load(manifest.program);
   let paused = false;
 

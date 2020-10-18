@@ -1,6 +1,7 @@
 import * as twgl from "twgl.js";
 import vertSrc from "./virtualscreen.vert";
 import fragSrc from "./virtualscreen.frag";
+import fragSrcPostProcessOff from "./virtualscreen_postprocess_off.frag";
 import { quad } from "../../util/quad";
 import { Vec2 } from "../../util/vec2";
 
@@ -14,7 +15,7 @@ type State = {
 
 export class VirtualScreenProgram {
   state: State;
-  constructor(gl: WebGLRenderingContext) {
+  constructor(gl: WebGLRenderingContext, postProcessing: boolean) {
     const arrays = {
       position: {
         numComponents: 2,
@@ -26,7 +27,10 @@ export class VirtualScreenProgram {
       },
     };
 
-    const programInfo = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
+    const programInfo = twgl.createProgramInfo(gl, [
+      vertSrc,
+      postProcessing ? fragSrc : fragSrcPostProcessOff,
+    ]);
     const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
     const scanlineTexture = twgl.createTexture(gl, {
       src: new Uint8Array([

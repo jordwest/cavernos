@@ -8,6 +8,7 @@ export type ManifestV1 = {
   };
   palette: string;
   inputMappings: InputMappingV1[];
+  postProcessing?: boolean;
 };
 
 type InputMappingV1 = {

@@ -30,7 +30,12 @@ export class Renderer {
     virtualScreen: twgl.FramebufferInfo;
   };
 
-  constructor(canvas: HTMLCanvasElement, fonts: Fonts, paletteSrc: string) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    fonts: Fonts,
+    paletteSrc: string,
+    postProcessing: boolean
+  ) {
     const gl = canvas.getContext("webgl");
     if (gl == null) {
       throw new Error("Could not start webgl");
@@ -61,7 +66,7 @@ export class Renderer {
     this.state = {
       gl,
       fontSpriteProgram: new FontSpriteProgram(gl),
-      virtualScreenProgram: new VirtualScreenProgram(gl),
+      virtualScreenProgram: new VirtualScreenProgram(gl, postProcessing),
       charsTable: new LookupTable(gl),
       bgColorTable: new LookupTable(gl),
       fgColorTable: new LookupTable(gl),
