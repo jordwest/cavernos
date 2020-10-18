@@ -46,6 +46,12 @@ You'll need to have installed:
  - `node` and `npm` to build the host
  - `rust` to build the demo application
  - A simple web server to run the build locally
+ 
+Additionally, to build the optimized example you'll need:
+ - [Binaryen](https://github.com/WebAssembly/binaryen) for the `wasm-opt` tool
+ - [wabt](https://github.com/WebAssembly/wabt) for the `wasm-strip` tool
+ 
+ (These are optional - you can get by without optimization but you'll end up with a much larger `.wasm` file)
 
 ### 2. Build the host and demo application
 
