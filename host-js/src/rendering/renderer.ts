@@ -129,9 +129,9 @@ export class Renderer {
     // How many virtual screens can we fit into the real display area?
     // (Rounded down so we only ever have integer multiples - other multiples
     // look crap with nearest neighbour (pixel) scaling)
-    const fitX = Math.floor(gl.canvas.width / this.state.virtualScreen.width);
-    const fitY = Math.floor(gl.canvas.height / this.state.virtualScreen.height);
-    const scale = Math.max(1.0, Math.min(fitX, fitY));
+    const fitX = gl.canvas.width / this.state.virtualScreen.width;
+    const fitY = gl.canvas.height / this.state.virtualScreen.height;
+    const scale = Math.floor(Math.max(1.0, Math.min(fitX, fitY)));
 
     this.state.virtualScreenProgram.render(
       this.state.virtualScreen.attachments[0],
