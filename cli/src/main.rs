@@ -33,24 +33,33 @@ fn new_command(opts: NewOpts) {
   
   for filename in Asset::iter() {
     let path = Path::new(filename.as_ref());
+    
+    // Extract common assets
+    if let Ok(path) = path.strip_prefix("common") {
+      let path_prefix = format!("{}/assets", &project_name);
+      let path = Path::new(&path_prefix).join(path);
+      
+      let containing_dir = path.parent().unwrap();
+      fs::create_dir(containing_dir);
+
+      let embedded_file = Asset::get(&filename).unwrap();
+      fs::write(path, embedded_file.data);
+    }
+
+    // Extract language specific files
     if let Ok(path) = path.strip_prefix("templates") {
       // Check it's for the language we want
       if let Ok(path) = path.strip_prefix(&opts.language) {
-        println!("For language you chose {:?}", path);
+        let embedded_file = Asset::get(&filename).unwrap();
         
-        if let Some(embedded_file) = Asset::get(&filename) {
-          let path = Path::new(&project_name).join(path);
+        let path = Path::new(&project_name).join(path);
 
-          let containing_dir = path.parent().unwrap();
-          fs::create_dir(containing_dir);
+        let containing_dir = path.parent().unwrap();
+        fs::create_dir(containing_dir);
 
-          fs::write(path, embedded_file.data);
-        } else {
-          panic!("Missing file {}", &filename)
-        }
+        fs::write(path, embedded_file.data);
       }
     }
-    println!("File {}", filename.as_ref());
   }
 }
 
