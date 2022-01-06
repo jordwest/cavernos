@@ -6,7 +6,7 @@ use std::path::Path;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "new")]
 struct NewOpts {
-  #[structopt(short, long)]
+  #[structopt(name = "NAME")]
   name: String,
 
   #[structopt(short, long)]
