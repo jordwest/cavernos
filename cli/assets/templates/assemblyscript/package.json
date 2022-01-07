@@ -1,0 +1,12 @@
+{
+  "name": "program",
+  "version": "1.0.0",
+  "description": "An AssemblyScript program that runs on CavernOS",
+  "scripts": {
+    "build": "asc --target release",
+    "build:debug": "asc --target debug"
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.19.22"
+  }
+}

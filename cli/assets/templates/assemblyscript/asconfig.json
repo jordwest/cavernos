@@ -1,0 +1,24 @@
+{
+  "entries": [
+    "./src/main.ts"
+  ],
+  "options": {
+    "binaryFile": "build/program.wasm",
+    "runtime": "incremental",
+    "importMemory": false,
+    "zeroFilledMemory": true
+  },
+  "targets": {
+    "release": {
+      "optimizeLevel": 3,
+      "shrinkLevel": 2,
+      "noAssert": true,
+      "use": [
+        "abort="
+      ]
+    },
+    "debug": {
+      "debug": true
+    }
+  }
+}
