@@ -1,5 +1,6 @@
 import { COLS, ROWS, CHARS, FG_COLOR } from './cavernos';
 
+// Reserve and export some memory for OS operations
 export const OS = new ArrayBuffer(262144);
 
 export function init(os_pointer: usize): usize {
