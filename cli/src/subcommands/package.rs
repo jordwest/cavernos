@@ -1,6 +1,7 @@
 use structopt::StructOpt;
 use std::fs;
 use std::path::Path;
+use rust_embed::RustEmbed;
 use serde_json::{Value, Map};
 
 #[derive(StructOpt, Debug)]
@@ -9,6 +10,11 @@ pub struct PackageOpts {
   #[structopt(name = "MANIFEST")]
   manifest_path: Option<String>,
 }
+
+#[derive(RustEmbed)]
+#[folder = "../runtimes/web/dist"]
+#[exclude = "*.js.map"]
+struct RuntimeAssets;
 
 const MAX_SUPPORTED_MANIFEST_VERSION: i64 = 1;
 
@@ -40,7 +46,7 @@ pub fn package_command(opts: PackageOpts) -> Result<(), String> {
   let manifest_path = opts.manifest_path.unwrap_or("manifest.json".to_string());
   let manifest_path = Path::new(&manifest_path);
   let manifest_directory = manifest_path.parent().unwrap();
-  
+
   let manifest_data = fs::read(manifest_path)
     .map_err(|_| format!("Error reading manifest file. Are you in the right directory?"))?;
   
@@ -78,6 +84,12 @@ pub fn package_command(opts: PackageOpts) -> Result<(), String> {
   
   copy_and_update_path(fonts_dict, manifest_directory, "narrow", "font_narrow.png")?;
   copy_and_update_path(fonts_dict, manifest_directory, "square", "font_square.png")?;
+
+  for filename in RuntimeAssets::iter() {
+    let destination_path = dist_directory.join(filename.as_ref());
+    let file = RuntimeAssets::get(filename.as_ref()).unwrap();
+    fs::write(destination_path, file.data);
+  }
   
   let manifest_data = serde_json::to_vec_pretty(manifest_dict).unwrap();
   fs::write((&dist_directory).join("manifest.json"), manifest_data);

@@ -1,6 +1,7 @@
 .DS_Store
 dist/*
 !runtimes/web/dist/main.js
+!runtimes/web/dist/index.html
 .cache
 node_modules
 *.js.map
