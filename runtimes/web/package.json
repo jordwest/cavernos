@@ -6,6 +6,6 @@
   "dependencies": {
     "esbuild": "^0.14.10",
     "twgl.js": "^4.21.2",
-    "typescript": "^3.9.10"
+    "typescript": "^4.5.4"
   }
 }

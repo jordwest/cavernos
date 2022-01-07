@@ -1,6 +1,7 @@
 import { WasmProgram } from "./wasm/load";
 import { Renderer } from "./rendering/renderer";
 import { resizeCanvasToDisplaySize } from "twgl.js";
+import { ManifestV1 } from "./manifest";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 
