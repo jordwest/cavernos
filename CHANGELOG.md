@@ -29,3 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    ```
    cavernos package
    ```
+ - New AssemblyScript project template
+
+### Changed
+ - Replaced parcel bundler with `esbuild`, shaving 20kB off the bundle! The web runtime is now only 59kB (excluding assets).
