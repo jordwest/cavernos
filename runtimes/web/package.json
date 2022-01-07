@@ -1,15 +1,11 @@
 {
   "scripts": {
-    "build": "parcel build src/main.ts",
-    "devbuild": "NODE_ENV=development parcel build src/main.ts --no-minify"
+    "build": "esbuild src/main.ts --bundle --outfile=dist/main.js --loader:.frag=text --loader:.vert=text --minify",
+    "devbuild": "NODE_ENV=development esbuild src/main.ts --bundle --outfile=dist/main.js --loader:.frag=text --loader:.vert=text"
   },
   "dependencies": {
-    "parcel-bundler": "^1.12.5",
+    "esbuild": "^0.14.10",
     "twgl.js": "^4.21.2",
     "typescript": "^3.9.10"
-  },
-  "devDependencies": {
-    "glslify-bundle": "^5.1.1",
-    "glslify-deps": "^1.3.2"
   }
 }
