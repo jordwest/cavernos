@@ -1,0 +1,12 @@
+[package]
+name = "program"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Optional memory allocator. Use this if you need to allocate memory on the heap (eg, using a Vec, Map etc)
+wee_alloc = "0.4"

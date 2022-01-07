@@ -2,9 +2,7 @@ import { WasmProgram } from "./wasm/load";
 import { Renderer } from "./rendering/renderer";
 import { resizeCanvasToDisplaySize } from "twgl.js";
 
-const pauseButton = document.getElementById("pause") as HTMLButtonElement;
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-const debugEl = document.getElementById("debug") as HTMLPreElement;
 
 fetch("./manifest.json")
   .then((response) => response.json())
@@ -48,25 +46,16 @@ const start = async (manifest: ManifestV1) => {
     e.key;
   });
 
-  pauseButton.addEventListener("click", () => {
-    paused = !paused;
-    pauseButton.innerText = paused ? "Play" : "Pause";
-  });
-
   let frameCount = 0;
   let t: number | undefined;
-  const frame = (tNext: number) => {
-    let debug: object = {};
-
+  const frame = (tNext?: number) => {
     if (paused) {
       requestAnimationFrame(frame);
       return;
     }
 
-    const start = performance.now();
-
     let dt;
-    if (t == null) {
+    if (t == null || tNext == null) {
       dt = 0.016;
     } else {
       dt = (tNext - t) / 1000;
@@ -124,14 +113,6 @@ const start = async (manifest: ManifestV1) => {
       fgColors.update = false;
       bgColors.update = false;
       screen.update = false;
-    }
-
-    // This DOM update actually causes the most memory allocations,
-    // so only do it every 20 frames
-    if (frameCount % 20 === 0) {
-      const end = performance.now();
-      debug.time = Math.round(end - start) + "ms";
-      debugEl.textContent = JSON.stringify(debug, undefined, 2);
     }
 
     frameCount += 1;
