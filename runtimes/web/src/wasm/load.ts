@@ -1,4 +1,6 @@
 // For some reason iOS Safari doesn't return an object, but just the address directly
+import {CONFIG_LAYOUT} from "../memory-layout";
+
 type ExportAddress = number | { value: number };
 const getExportAddress = (v: ExportAddress): Pointer =>
   (typeof v === "number" ? v : v.value) as Pointer;
@@ -85,12 +87,10 @@ export class WasmProgram {
     const view = new DataView(
       this.state.exports.memory.buffer,
       getExportAddress(this.state.exports.OS) + configOffset,
-      2
+      4
     );
-    return {
-      cols: view.getUint8(0),
-      rows: view.getUint8(1),
-    };
+    
+    return new ConfigData(view);
   }
 
   get screen() {
@@ -121,6 +121,28 @@ export class WasmProgram {
       this.config.cols,
       this.config.rows
     );
+  }
+}
+
+export class ConfigData {
+  private data: DataView;
+  
+  constructor(view: DataView) {
+    this.data = view;
+  }
+  
+  get rows() {
+    return this.data.getUint8(CONFIG_LAYOUT.ROWS);
+  }
+  get cols() {
+    return this.data.getUint8(CONFIG_LAYOUT.COLUMNS);
+  }
+
+  set max_rows(val: number) {
+    this.data.setUint8(CONFIG_LAYOUT.MAX_ROWS, val);
+  }
+  set max_cols(val: number) {
+    this.data.setUint8(CONFIG_LAYOUT.MAX_COLUMNS, val);
   }
 }
 

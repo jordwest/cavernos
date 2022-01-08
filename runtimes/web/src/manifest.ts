@@ -15,7 +15,7 @@ type InputMappingV1 = {
   /**
    * The address to which this input's value will be written
    */
-  index: number;
+  address: number;
 
   /**
    * An optional comment describing this key

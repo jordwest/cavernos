@@ -1,0 +1,14 @@
+export const CONFIG_LAYOUT = {
+  COLUMNS: 0x0,
+  ROWS: 0x1,
+  MAX_COLUMNS: 0x2,
+  MAX_ROWS: 0x3,
+}
+
+export const OS_LAYOUT = {
+  CONFIG: 0x000000,
+  INPUTS: 0x000100,
+  CHARACTERS: 0x000C00,
+  BG_COLOR: 0x010C00,
+  FG_COLOR: 0x020C00,
+}

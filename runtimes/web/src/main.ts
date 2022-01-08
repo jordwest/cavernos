@@ -9,6 +9,12 @@ fetch("./manifest.json")
   .then((response) => response.json())
   .then((json) => start(json));
 
+const calculateMaxRowsAndColumns = (canvas: HTMLCanvasElement, gridSize: {width: number, height: number}) => {
+  const columns = Math.floor((canvas.width / window.devicePixelRatio) / gridSize.width);
+  const rows = Math.floor((canvas.height / window.devicePixelRatio) / gridSize.height);
+  return {columns, rows};
+}
+
 const start = async (manifest: ManifestV1) => {
   if (manifest.manifestVersion == null) {
     console.log(manifest);
@@ -66,12 +72,17 @@ const start = async (manifest: ManifestV1) => {
     program.tick(dt);
 
     let canvasResized = false;
+    
     // Minimise DOM access by checking only every 10 frames
     if (frameCount % 10 === 0) {
       canvasResized = resizeCanvasToDisplaySize(
         canvas,
         window.devicePixelRatio || 1
       );
+      
+      const maxCells = calculateMaxRowsAndColumns(canvas, manifest.fonts.gridSize);
+      program.config.max_cols = maxCells.columns;
+      program.config.max_rows = maxCells.rows;
     }
 
     const config = program.config;
