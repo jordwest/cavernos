@@ -30,10 +30,10 @@ pub struct RoguelikeState {
 }
 
 // Input addresses as specified in manifest.json
-const MOVE_UP: usize = 9;
-const MOVE_DOWN: usize = 10;
-const MOVE_LEFT: usize = 11;
-const MOVE_RIGHT: usize = 12;
+const MOVE_UP: usize = 119;
+const MOVE_DOWN: usize = 115;
+const MOVE_LEFT: usize = 97;
+const MOVE_RIGHT: usize = 100;
 
 const SIDEBAR_WIDTH: u8 = 30;
 

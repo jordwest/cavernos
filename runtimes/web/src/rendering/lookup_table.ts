@@ -74,6 +74,9 @@ export class LookupTable {
         // Narrow char
         this.setCell(offset, x, y, false);
       } else {
+        // If buffer contains a 255 in the last place, we might try to read out of bounds
+        if (offset + 1 >= chars) return;
+        
         // Double width char
         // Read the next byte to see what char to print
         const charCode = data.getUint8(offset + 1);

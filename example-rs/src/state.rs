@@ -1,8 +1,7 @@
 pub struct AppState {
     pub time: f64,
     pub program: ProgramState,
-    pub rows: u8,
-    pub cols: u8,
+    pub scale: u8,
     pub ui_visible: bool,
     pub clear_required: bool,
     pub selected_element: UiSelectedElement,
@@ -27,8 +26,7 @@ impl ProgramState {
 
 pub enum UiSelectedElement {
     ProgramSelector,
-    RowSelector,
-    ColumnSelector,
+    ScaleSelector,
 }
 
 pub enum UiAction {
@@ -73,35 +71,25 @@ impl AppState {
             ProgramState::Perlin(_) => self.start_matrix(),
         }
     }
-    fn adjust_rows(&mut self, by: i32) {
-        let new_count = (self.rows as i32) + (2 * by);
-        if new_count < 20 || new_count > 255 {
+    fn adjust_scale(&mut self, by: i32) {
+        let new_count = (self.scale as i32) + by;
+        if new_count < 1 || new_count > 4 {
             return;
         }
         self.clear_required = true;
-        self.rows = new_count as u8;
-    }
-    fn adjust_columns(&mut self, by: i32) {
-        let new_count = (self.cols as i32) + (2 * by);
-        if new_count < 60 || new_count > 255 {
-            return;
-        }
-        self.clear_required = true;
-        self.cols = new_count as u8;
+        self.scale = new_count as u8;
     }
 
     fn left(&mut self) {
         match self.selected_element {
             UiSelectedElement::ProgramSelector => self.prev_program(),
-            UiSelectedElement::RowSelector => self.adjust_rows(-1),
-            UiSelectedElement::ColumnSelector => self.adjust_columns(-1),
+            UiSelectedElement::ScaleSelector => self.adjust_scale(-1),
         }
     }
     fn right(&mut self) {
         match self.selected_element {
             UiSelectedElement::ProgramSelector => self.next_program(),
-            UiSelectedElement::RowSelector => self.adjust_rows(1),
-            UiSelectedElement::ColumnSelector => self.adjust_columns(1),
+            UiSelectedElement::ScaleSelector => self.adjust_scale(1),
         }
     }
     fn accept(&mut self) {
@@ -113,23 +101,17 @@ impl AppState {
     fn up(&mut self) {
         match self.selected_element {
             UiSelectedElement::ProgramSelector => (),
-            UiSelectedElement::RowSelector => {
+            UiSelectedElement::ScaleSelector => {
                 self.selected_element = UiSelectedElement::ProgramSelector
-            }
-            UiSelectedElement::ColumnSelector => {
-                self.selected_element = UiSelectedElement::RowSelector
             }
         };
     }
     fn down(&mut self) {
         match self.selected_element {
             UiSelectedElement::ProgramSelector => {
-                self.selected_element = UiSelectedElement::RowSelector
+                self.selected_element = UiSelectedElement::ScaleSelector
             }
-            UiSelectedElement::RowSelector => {
-                self.selected_element = UiSelectedElement::ColumnSelector
-            }
-            UiSelectedElement::ColumnSelector => (),
+            UiSelectedElement::ScaleSelector => ()
         };
     }
     pub fn dispatch(&mut self, action: UiAction) {

@@ -1,0 +1,13 @@
+{
+  "manifestVersion": 1,
+  "program": "./target/wasm32-unknown-unknown/release/cavernos_example_rs_optimised.wasm",
+  "fonts": {
+    "gridSize": {
+      "width": 8,
+      "height": 16
+    },
+    "narrow": "./assets/text-font.png",
+    "square": "./assets/text-font-square.png"
+  },
+  "palette": "./assets/palette.png"
+}

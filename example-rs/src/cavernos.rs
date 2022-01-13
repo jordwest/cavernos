@@ -20,7 +20,9 @@ impl ScreenData {
 pub struct Config {
     pub cols: u8,
     pub rows: u8,
-    __reserved: [u8; 254],
+    pub max_cols: u8,
+    pub max_rows: u8,
+    __reserved: [u8; 252],
 }
 
 pub fn log(s: String) {
@@ -36,7 +38,9 @@ static mut OS: CavernOS = CavernOS {
     config: Config {
         cols: 120,
         rows: 40,
-        __reserved: [0; 254],
+        max_cols: 120,
+        max_rows: 40,
+        __reserved: [0; 252],
     },
     inputs: [0; 256],
     __reserved: [0; 2560],

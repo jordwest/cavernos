@@ -95,7 +95,7 @@ table td {
           <td>u8[]</td>
           <td>256</td>
           <td>Inputs</td>
-          <td>Each byte in this range corresponds to the value of the input as specified in manifest.json. For keypresses, the value will be set to 1 when the key is initially pressed down, and reset to 0 when the key is released. You may want to reset the value to zero if you only want to capture the initial event, that way you'll receive further keyboard repeats.</td>
+          <td>Each byte in this range corresponds to the state of an input. For keypresses, the value will be set to 1 when the key is initially pressed down, and reset to 0 when the key is released. You may want to reset the value to zero if you only want to capture the initial event, that way you'll receive further keyboard repeats.</td>
         </tr>
         <tr>
           <td>0x000200</td>

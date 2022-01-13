@@ -37,38 +37,17 @@ pub fn frame(os: &mut cavernos::CavernOS, app_state: &mut AppState, location: Re
                         Box::new(Style {
                             bg_color: None,
                             fg_color: Some(2),
-                            child: Padding {
-                                left: 0,
-                                right: 0,
-                                top: 1,
-                                bottom: 0,
-                                child: Text::from_segments(
-                                    vec![TextSegment::Text(format!("Rows"))],
-                                    TextAlign::Middle,
-                                ),
-                            },
-                        }),
-                        Box::new(Selector {
-                            is_active: match app_state.selected_element {
-                                UiSelectedElement::RowSelector => true,
-                                _ => false,
-                            },
-                            text: vec![TextSegment::Text(format!("{}", app_state.rows))],
-                        }),
-                        Box::new(Style {
-                            bg_color: None,
-                            fg_color: Some(2),
                             child: Text::from_segments(
-                                vec![TextSegment::Text(format!("Columns"))],
+                                vec![TextSegment::Text(format!("Scale"))],
                                 TextAlign::Middle,
                             ),
                         }),
                         Box::new(Selector {
                             is_active: match app_state.selected_element {
-                                UiSelectedElement::ColumnSelector => true,
+                                UiSelectedElement::ScaleSelector => true,
                                 _ => false,
                             },
-                            text: vec![TextSegment::Text(format!("{}", app_state.cols))],
+                            text: vec![TextSegment::Text(format!("{}", app_state.scale))],
                         }),
                     ],
                 },

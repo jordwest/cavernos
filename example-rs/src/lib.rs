@@ -15,8 +15,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[no_mangle]
 static mut STATE: AppState = AppState {
     time: 0.0,
-    rows: 24,
-    cols: 90,
+    scale: 2u8,
     program: ProgramState::None,
     ui_visible: true,
     clear_required: false,
@@ -41,10 +40,11 @@ extern "C" fn init(os: &mut cavernos::CavernOS) -> &mut AppState {
 }
 
 // Inputs
-const MOVE_UP: usize = 0;
-const MOVE_DOWN: usize = 1;
-const MOVE_LEFT: usize = 2;
-const MOVE_RIGHT: usize = 3;
+const MOVE_UP: usize = 3;
+const MOVE_DOWN: usize = 2;
+const MOVE_LEFT: usize = 1;
+const MOVE_RIGHT: usize = 4;
+const KEY_H: usize = 104;
 
 const UI_WIDTH: u8 = 28;
 
@@ -58,13 +58,15 @@ extern "C" fn frame(os: &mut cavernos::CavernOS, app_state: &mut AppState, dt: f
         app_state.dispatch(UiAction::Left);
     } else if os.get_input_latch(MOVE_RIGHT) {
         app_state.dispatch(UiAction::Right);
+    } else if os.get_input_latch(KEY_H) {
+      app_state.dispatch(UiAction::HideUI);
     }
 
     if app_state.clear_required {
         app_state.clear_required = false;
         os.clear();
     }
-
+  
     app_state.time += dt;
     match &mut app_state.program {
         ProgramState::None => (),
@@ -73,15 +75,18 @@ extern "C" fn frame(os: &mut cavernos::CavernOS, app_state: &mut AppState, dt: f
         ProgramState::Roguelike(ref mut s) => roguelike::frame(os, s, dt),
     }
 
-    os.config.rows = app_state.rows;
-    os.config.cols = app_state.cols;
+    os.config.rows = os.config.max_rows / app_state.scale;
+    os.config.cols = (os.config.max_cols / app_state.scale);
+  
+    // Ensure we have an even number of columns (so that square characters wrap correctly - they use two chars)
+    os.config.cols = os.config.cols / 2 * 2;
 
     if app_state.ui_visible {
         let ui_rect = Rect {
             top: 1,
-            left: (app_state.cols - UI_WIDTH - 2) as i32,
-            right: (app_state.cols - 2) as i32,
-            bottom: (app_state.rows - 2) as i32,
+            left: (os.config.cols - UI_WIDTH - 2) as i32,
+            right: (os.config.cols - 2) as i32,
+            bottom: (os.config.rows - 2) as i32,
         };
         ui::frame(os, app_state, ui_rect);
     }

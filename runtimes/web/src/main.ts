@@ -2,6 +2,7 @@ import { WasmProgram } from "./wasm/load";
 import { Renderer } from "./rendering/renderer";
 import { resizeCanvasToDisplaySize } from "twgl.js";
 import { ManifestV1 } from "./manifest";
+import {KEY_MAP} from "./input/key-map";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 
@@ -35,22 +36,17 @@ const start = async (manifest: ManifestV1) => {
   let paused = false;
 
   document.addEventListener("keydown", (e) => {
-    manifest.inputMappings.forEach((mapping) => {
-      if (mapping.keys.includes(e.key)) {
-        program.setInput(mapping.address, 1);
-      }
-    });
-    e.key;
-    console.log(e.key);
+    const address = KEY_MAP[e.key];
+    if (address != null) {
+      program.setInput(address, 1);
+    }
   });
 
   document.addEventListener("keyup", (e) => {
-    manifest.inputMappings.forEach((mapping) => {
-      if (mapping.keys.includes(e.key)) {
-        program.setInput(mapping.address, 0);
-      }
-    });
-    e.key;
+    const address = KEY_MAP[e.key];
+    if (address != null) {
+      program.setInput(address, 0);
+    }
   });
 
   let frameCount = 0;
