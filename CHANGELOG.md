@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Todo before release
  - [ ] Add a C template
- - [ ] Add a `serve` and `--watch` command that serves wasm with correct MIME type, and hot reloads assets
  - [ ] Docs (quick start and api reference)
  - [ ] Quality of life improvements to the C interface:
    - [ ] Function for clearing the screen `clear(char, bg, fg)`
@@ -24,11 +23,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    cavernos new project-name --template rust
    ```
    
-   Package up the project into a web build:
+   Start a local server running a web build:
+   ```
+   cavernos run
+   ```
+   
+   Package up the project into a distributable web build:
    ```
    cavernos package
    ```
- - New AssemblyScript project template
+   
+- New AssemblyScript project template
 
 ### Changed
  - Replaced parcel bundler with `esbuild`, shaving 20kB off the bundle! The web runtime is now only 59kB (excluding assets).

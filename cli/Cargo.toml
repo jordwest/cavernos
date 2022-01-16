@@ -1,8 +1,8 @@
 [package]
-name = "cavernos-cli"
-version = "0.1.0"
+name = "cavernos"
+version = "0.2.0-alpha"
 authors = ["Jordan West <jordwest@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,3 +15,7 @@ serde_json = "1.0"
 
 # Embed templates and default assets in the binary for easy distribution
 rust-embed = { version = "6.3.0", features = [ "include-exclude"] }
+
+# Embedded server
+tokio = { version = "1", features = ["full"] }
+warp = "0.3"
