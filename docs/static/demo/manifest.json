@@ -1,0 +1,13 @@
+{
+  "fonts": {
+    "gridSize": {
+      "height": 16,
+      "width": 8
+    },
+    "narrow": "font_narrow.png",
+    "square": "font_square.png"
+  },
+  "manifestVersion": 1,
+  "palette": "palette.png",
+  "program": "program.wasm"
+}
